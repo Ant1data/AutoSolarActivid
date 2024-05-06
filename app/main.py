@@ -11,5 +11,11 @@ main_frame = ctk.CTk()
 main_frame.geometry("640x480")  # Defining frame geometry
 main_frame.title("Cosmic On Air")
 
+
+## ---------- View elements ---------- ##
+lblTitle = ctk.CTkLabel(main_frame, text="COSMIC ON AIR | Video Generator", font=('Tw Cen MT', 18))
+lblTitle.pack(pady=10)
+
+
 # Running app
 main_frame.mainloop()
