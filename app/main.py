@@ -13,9 +13,8 @@ main_frame.title("Cosmic On Air")
 
 
 ## ---------- View elements ---------- ##
-lblTitle = ctk.CTkLabel(main_frame, text="COSMIC ON AIR | Video Generator", font=('Tw Cen MT', 18))
+lblTitle = ctk.CTkLabel(main_frame, text="COSMIC ON AIR | Video Generator")
 lblTitle.pack(pady=10)
-
 
 # Running app
 main_frame.mainloop()
