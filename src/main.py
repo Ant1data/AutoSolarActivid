@@ -41,6 +41,7 @@ frmVideoType.rowconfigure(0, weight=1)
 frmVideoType.rowconfigure(1, weight=3)
 frmVideoType.pack(anchor="center", fill="x", pady=10)
 
+# Video Type Label
 lblVideoType = ctk.CTkLabel(frmVideoType, text="Video type")
 lblVideoType.grid(row=0, column=0, sticky="w", padx=8)
 
@@ -55,38 +56,46 @@ btnSolarActivityVideo = ctk.CTkButton(frmVideoType, text="Solar activity video",
 btnSolarActivityVideo.grid(row=1, column=1, sticky="w", padx=8)
 
 
-# ----- Timestamp Frame ----- #
-frmTimestamp = ctk.CTkFrame(frmMain)
+# ----- Timestamps Frame ----- #
+frmTimestamps = ctk.CTkFrame(frmMain)
 
-# Configuring grid layout for this frame
-frmTimestamp.columnconfigure((0,1), weight=1)
-frmTimestamp.rowconfigure(0, weight=1)
-frmTimestamp.rowconfigure(1, weight=3)
-frmTimestamp.pack(anchor="center", fill="x", pady=10)
+# Configuring grid layout for Timestamps frame
+frmTimestamps.columnconfigure((0,2), weight=4)
+frmTimestamps.columnconfigure(1, weight=1)
+frmTimestamps.rowconfigure((0,1), weight=1)
+frmTimestamps.rowconfigure(2, weight=3)
+frmTimestamps.pack(anchor="center", fill="x", pady=10)
 
 # Timestamp label
-lblTimestamp = ctk.CTkLabel(frmTimestamp, text="Timestamp")
-lblTimestamp.grid(row=0, column=0, sticky="w", padx=8)
+lblTimestamps = ctk.CTkLabel(frmTimestamps, text="Timestamps")
+lblTimestamps.grid(row=0, column=0, sticky="w", padx=8)
+
+# Begin label
+lblBegin = ctk.CTkLabel(frmTimestamps, text="Begin")
+lblBegin.grid(row=1, column=0)
+
+# End label
+lblEnd = ctk.CTkLabel(frmTimestamps, text="End")
+lblEnd.grid(row=1, column=2)
 
 
 # --- Begin Frame --- #
-frmBegin = ctk.CTkFrame(frmTimestamp)
+
 
 # Configuring grid layout for Begin frame
-frmBegin.columnconfigure((0,2,4), weight=2)
-frmBegin.columnconfigure((1,3), weight=1)
-frmBegin.rowconfigure((0,2), weight=1)
-frmBegin.rowconfigure(1, weight=2)
-frmBegin.grid(row=1, column=0, sticky="e", padx=8) # On the Timestamp grid
+# frmBegin.columnconfigure((0,2,4), weight=2)
+# frmBegin.columnconfigure((1,3), weight=1)
+# frmBegin.rowconfigure((0,2), weight=1)
+# frmBegin.rowconfigure(1, weight=2)
+# frmBegin.grid(row=1, column=0, sticky="e", padx=8) # On the Timestamp grid
 
-# Begin label
-lblBegin = ctk.CTkLabel(frmBegin, text="Begin")
-lblBegin.grid(row=0, column=2)
+# # Begin label
 
-cldrBegin = Calendar(frmBegin, cursor="hand2")
-cldrBegin.grid(row=1, column=2)
+# cldrBegin = Calendar(frmBegin, cursor="hand2")
+# cldrBegin.grid(row=1, column=2)
 
-## TODO : Mettre certaines Frames dans des classes à part entiere
+
+
 
 # Running app
 frmMain.mainloop()
