@@ -1,8 +1,6 @@
-import os
-import tkinter as tk
 import customtkinter as ctk
 
-from datetime import datetime, time
+from datetime import datetime
 from tkcalendar import Calendar
 
 class TimestampFrame(ctk.CTkFrame):
@@ -51,6 +49,8 @@ class TimestampFrame(ctk.CTkFrame):
         self.cbxSecond_var = ctk.StringVar(value=current_second) # Setting cbxSecond variable, in order to get its value later
         self.cbxSecond = ctk.CTkComboBox(self, values=minutes_seconds_values, variable=self.cbxSecond_var)
         self.cbxSecond.grid(row=1, column=4)
+    
+
 
 
 
