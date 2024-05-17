@@ -4,7 +4,7 @@ import customtkinter as ctk
 
 from datetime import date
 from PIL import Image
-from tkcalendar import Calendar
+from timestampframe import TimestampFrame
 
 
 ## <a href="https://www.flaticon.com/fr/icones-gratuites/analytique" title="analytique icônes">Analytique icônes créées par Arafat Uddin - Flaticon</a> ##
@@ -18,7 +18,7 @@ ctk.set_default_color_theme("blue")  # Default color
 
 # Generating our main window
 frmMain = ctk.CTk()
-frmMain.geometry("640x480")  # Defining frame geometry
+frmMain.geometry("720x640")  # Defining frame geometry
 frmMain.title("Cosmic On Air")
 
  
@@ -79,23 +79,38 @@ lblEnd = ctk.CTkLabel(frmTimestamps, text="End")
 lblEnd.grid(row=1, column=2)
 
 
-# --- Begin Frame --- #
+# --- Begin TimestampFrame --- #
+tsfBegin = TimestampFrame(frmTimestamps)
+tsfBegin.grid(row=2, column=0) 
+
+# --- End TimestampFrame --- #
+tsfEnd = TimestampFrame(frmTimestamps)
+tsfEnd.grid(row=2, column=2)
 
 
-# Configuring grid layout for Begin frame
-# frmBegin.columnconfigure((0,2,4), weight=2)
-# frmBegin.columnconfigure((1,3), weight=1)
-# frmBegin.rowconfigure((0,2), weight=1)
-# frmBegin.rowconfigure(1, weight=2)
-# frmBegin.grid(row=1, column=0, sticky="e", padx=8) # On the Timestamp grid
+# ----- Energy Frame ----- #
+frmEnergy = ctk.CTkFrame(frmMain)
+frmEnergy.pack(anchor="center", fill="x", pady=10)
 
-# # Begin label
+# Energy label
+lblEnergy = ctk.CTkLabel(frmEnergy, text="Energy")
+lblEnergy.pack(padx=8, anchor="w")
 
-# cldrBegin = Calendar(frmBegin, cursor="hand2")
-# cldrBegin.grid(row=1, column=2)
+# Proton Flux CheckBox
+chbProtonFlux = ctk.CTkCheckBox(frmEnergy, text="Proton Flux", border_width=1, checkbox_height=18, checkbox_width=18)
+chbProtonFlux.pack(anchor="w", padx=8)
 
+# Sub-Checkboxes for energy selection
+chb100MeV = ctk.CTkCheckBox(frmEnergy, text="< 100 MeV", border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED)
+chb100MeV.pack(anchor="w", padx=16)
+chb200MeV = ctk.CTkCheckBox(frmEnergy, text="< 200 MeV", border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED)
+chb200MeV.pack(anchor="w", padx=16)
+chb500MeV = ctk.CTkCheckBox(frmEnergy, text="< 500 MeV", border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED)
+chb500MeV.pack(anchor="w", padx=16)
 
-
+# Neutron Flux CheckBox
+chbNeutronFlux = ctk.CTkCheckBox(frmEnergy, text="Neutron Flux", border_width=1, checkbox_height=18, checkbox_width=18)
+chbNeutronFlux.pack(anchor="w", padx=8)
 
 # Running app
 frmMain.mainloop()
