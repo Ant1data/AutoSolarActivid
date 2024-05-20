@@ -8,7 +8,7 @@ ctk.set_default_color_theme("blue")  # Default color
 
 # Creating app frame
 main_app = AppFrame()
-main_app.geometry("720x640")
+main_app.geometry("720x800")
 main_app.title("Cosmic On Air")
 
 # Lauching app

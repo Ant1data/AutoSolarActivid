@@ -104,18 +104,39 @@ class AppFrame(ctk.CTk):
         self.chbNeutronFlux.pack(anchor="w", padx=8)
 
 
+        # ----- Comment Frame ----- #
+        self.frmComment = ctk.CTkFrame(self)
+        self.frmComment.columnconfigure(0, weight=1)
+        self.frmComment.rowconfigure(0, weight=1)
+        self.frmComment.rowconfigure(1, weight=2)
+        self.frmComment.pack(anchor="center", fill="x", pady=10)
+
+        # Comment label
+        self.lblComment = ctk.CTkLabel(self.frmComment, text="Comment")
+        self.lblComment.grid(row=0, column=0, sticky="w", padx=8)
+
+        # Comment textbox
+        self.tbxComment = ctk.CTkTextbox(self.frmComment)
+        self.tbxComment.grid(row=1, column=0, sticky="nsew", padx=8, pady=8)
+
+
+        # ----- Generate Button ----- #
+        self.btnGenerate = ctk.CTkButton(self, text="Generate")
+        self.btnGenerate.pack(anchor="center", pady=10)
+
+
     ## This function, triggered by self.chbProtonFlux, changes sub-checkboxes' states
     ## If self.chbProtonFlux is on, they become enabled,
     ## Otherwise, they become disabled
     def switch_states_proton_subcheckboxes(self):
         # Enabled
         if self.chbProtonFlux.get() == 1:
-            self.chb100MeV.configure(state="enabled")
-            self.chb200MeV.configure(state="enabled")
-            self.chb500MeV.configure(state="enabled")
+            self.chb100MeV.configure(state=tk.NORMAL)
+            self.chb200MeV.configure(state=tk.NORMAL)
+            self.chb500MeV.configure(state=tk.NORMAL)
         # Disabled
         else:
-            self.chb100MeV.configure(state="disabled")
-            self.chb200MeV.configure(state="disabled")
-            self.chb500MeV.configure(state="disabled")
+            self.chb100MeV.configure(state=tk.DISABLED)
+            self.chb200MeV.configure(state=tk.DISABLED)
+            self.chb500MeV.configure(state=tk.DISABLED)
         print(self.chbProtonFlux.get())
