@@ -1,3 +1,4 @@
+import tkinter as tk
 import customtkinter as ctk
 
 from datetime import datetime
@@ -19,36 +20,25 @@ class TimestampFrame(ctk.CTkFrame):
         self.cldrDatepicker = Calendar(self, showweeknumbers=False, locale='fr_FR') # TODO : put correct arguments inside
         self.cldrDatepicker.grid(row=0, column=0, columnspan=5)
     
-        # --- Time ComboBoxes --- #
-        # Generating values for comboboxes
-        hours_values = [f"{i:02d}" for i in range(24)]
-        minutes_seconds_values = [f"{i:02d}" for i in range(60)] 
-
-        # Getting current time for instance
-        current_time = datetime.today()
-
-        current_hour = current_time.strftime("%H")
-        current_minute = current_time.strftime("%M")
-        current_second = current_time.strftime("%S")
-
-        # Generating comboboxes and semicolon labels
-        self.cbxHour_var = ctk.StringVar(value=current_hour) # Setting cbxHour variable, in order to get its value later
-        self.cbxHour = ctk.CTkComboBox(self, values=hours_values, variable=self.cbxHour_var)
-        self.cbxHour.grid(row=1, column=0)
+        # --- Time Spinboxes --- #
+        self.spbHour = tk.Spinbox(self, from_=0, to=23)
+        self.spbHour.grid(row=1, column=0)
 
         self.lblSemicolon1 = ctk.CTkLabel(self, text=":")
         self.lblSemicolon1.grid(row=1, column=1)
 
-        self.cbxMinute_var = ctk.StringVar(value=current_minute) # Setting cbxMinute variable, in order to get its value later
-        self.cbxMinute = ctk.CTkComboBox(self, values=minutes_seconds_values, variable=self.cbxMinute_var)
-        self.cbxMinute.grid(row=1, column=2)
+        self.spbMinute = tk.Spinbox(self, from_=0, to=59)
+        self.spbMinute.grid(row=1, column=2)
 
         self.lblSemicolon2 = ctk.CTkLabel(self, text=":")
         self.lblSemicolon2.grid(row=1, column=3)
 
-        self.cbxSecond_var = ctk.StringVar(value=current_second) # Setting cbxSecond variable, in order to get its value later
-        self.cbxSecond = ctk.CTkComboBox(self, values=minutes_seconds_values, variable=self.cbxSecond_var)
-        self.cbxSecond.grid(row=1, column=4)
+        self.spbSecond = tk.Spinbox(self, from_=0, to=59)
+        self.spbSecond.grid(row=1, column=4)
+
+        ## TODO : create a personal Spinbox class
+
+        
     
 
 
