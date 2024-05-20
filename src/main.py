@@ -6,10 +6,14 @@ from view.appframe import AppFrame
 ctk.set_appearance_mode("System")  # Light/Dark mode
 ctk.set_default_color_theme("blue")  # Default color
 
-# Creating app frame
-main_app = AppFrame()
-main_app.geometry("720x800")
-main_app.title("Cosmic On Air")
+# Creating main
+main_window = ctk.CTk()
+main_window.geometry("800x800")
+main_window.title("SolarActivid")
+
+# Adding app frame on main window
+app_frame = AppFrame(main_window, width=1200, height=1400, fg_color="white")
+app_frame.pack()
 
 # Lauching app
-main_app.mainloop()
+main_window.mainloop()

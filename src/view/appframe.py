@@ -9,9 +9,9 @@ from view.timestampframe import TimestampFrame
 # Path to app/img folder, in order to get image files 
 IMG_FOLDER_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "img") # We take the directory name of the parent directory where this file is located + img directory
 
-class AppFrame(ctk.CTk):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+class AppFrame(ctk.CTkScrollableFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
 
         ## VIEW ELEMENTS ----------------------------------------------------------------------------------------------------------- ##
         # ----- Title Bar ----- #
