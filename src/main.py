@@ -1,6 +1,6 @@
 import customtkinter as ctk
 
-from appframe import AppFrame
+from view.appframe import AppFrame
 
 # Appearance settings
 ctk.set_appearance_mode("System")  # Light/Dark mode

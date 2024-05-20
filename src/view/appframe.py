@@ -4,10 +4,10 @@ import customtkinter as ctk
 
 from datetime import date
 from PIL import Image
-from timestampframe import TimestampFrame
+from view.timestampframe import TimestampFrame
 
 # Path to app/img folder, in order to get image files 
-IMG_FOLDER_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "img")
+IMG_FOLDER_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "img") # We take the directory name of the parent directory where this file is located + img directory
 
 class AppFrame(ctk.CTk):
     def __init__(self, **kwargs):
