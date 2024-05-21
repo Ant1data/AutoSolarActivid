@@ -143,3 +143,5 @@ class AppFrame(ctk.CTkScrollableFrame):
             self.chb100MeV.configure(state=tk.DISABLED)
             self.chb200MeV.configure(state=tk.DISABLED)
             self.chb500MeV.configure(state=tk.DISABLED)
+
+    

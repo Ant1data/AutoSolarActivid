@@ -1,13 +1,11 @@
 import tkinter as tk
 import customtkinter as ctk
 
-from datetime import datetime
 from tkcalendar import Calendar
 
 class TimestampFrame(ctk.CTkFrame):
-    def __init__(self, root, **kwargs):
-        super().__init__(root, **kwargs)
-        self.root = root # Defining tkinter root container
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
 
         # Grid configuration
         self.columnconfigure((0,2,4), weight=3)
@@ -15,7 +13,7 @@ class TimestampFrame(ctk.CTkFrame):
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
         
-        ## ----- Adding GUI elements ----- ##
+        ## VIEW ELEMENTS ----------------------------------------------------------------------------------------------------------- ##
         # --- Date picker --- #
         self.cldrDatepicker = Calendar(self, showweeknumbers=False, locale='fr_FR') # TODO : put correct arguments inside
         self.cldrDatepicker.grid(row=0, column=0, columnspan=5)
