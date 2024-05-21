@@ -21,19 +21,19 @@ class TimestampFrame(ctk.CTkFrame):
         self.cldrDatepicker.grid(row=0, column=0, columnspan=5)
     
         # --- Time Spinboxes --- #
-        self.spbHour = tk.Spinbox(self, from_=0, to=23)
+        self.spbHour = tk.Spinbox(self, from_=0, to=23, width=10)
         self.spbHour.grid(row=1, column=0)
 
         self.lblSemicolon1 = ctk.CTkLabel(self, text=":")
         self.lblSemicolon1.grid(row=1, column=1)
 
-        self.spbMinute = tk.Spinbox(self, from_=0, to=59)
+        self.spbMinute = tk.Spinbox(self, from_=0, to=59, width=10)
         self.spbMinute.grid(row=1, column=2)
 
         self.lblSemicolon2 = ctk.CTkLabel(self, text=":")
         self.lblSemicolon2.grid(row=1, column=3)
 
-        self.spbSecond = tk.Spinbox(self, from_=0, to=59)
+        self.spbSecond = tk.Spinbox(self, from_=0, to=59, width=10)
         self.spbSecond.grid(row=1, column=4)
 
         ## TODO : create a personal Spinbox class

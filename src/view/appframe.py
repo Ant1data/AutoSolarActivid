@@ -71,11 +71,15 @@ class AppFrame(ctk.CTkScrollableFrame):
 
 
         # --- Begin TimestampFrame --- #
-        self.tsfBegin = TimestampFrame(self.frmTimestamps)
+        self.tsfBegin = TimestampFrame(self.frmTimestamps, fg_color="transparent")
         self.tsfBegin.grid(row=2, column=0) 
 
+        # --- Separator frame --- #
+        self.frmSeparator = ctk.CTkFrame(self.frmTimestamps, width=2, fg_color="gray20")
+        self.frmSeparator.grid(row=1, column=1, rowspan=2, sticky="ns")
+
         # --- End TimestampFrame --- #
-        self.tsfEnd = TimestampFrame(self.frmTimestamps)
+        self.tsfEnd = TimestampFrame(self.frmTimestamps, fg_color="transparent")
         self.tsfEnd.grid(row=2, column=2)
 
 
