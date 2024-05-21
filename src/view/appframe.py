@@ -15,11 +15,11 @@ class AppFrame(ctk.CTkScrollableFrame):
 
         ## VIEW ELEMENTS ----------------------------------------------------------------------------------------------------------- ##
         # ----- Title Bar ----- #
-        self.frmTitleBar = ctk.CTkFrame(self)
+        self.frmTitleBar = ctk.CTkFrame(self, corner_radius=0)
         self.frmTitleBar.pack(anchor="center", fill="x")
 
         # Title Label
-        self.lblTitle = ctk.CTkLabel(self.frmTitleBar, text="COSMIC ON AIR | Video Generator", font=ctk.CTkFont(size=20, weight="bold"))
+        self.lblTitle = ctk.CTkLabel(self.frmTitleBar, text="SolarActivid", font=ctk.CTkFont(size=20, weight="bold"), )
         self.lblTitle.pack(pady=10)
 
 
@@ -139,4 +139,3 @@ class AppFrame(ctk.CTkScrollableFrame):
             self.chb100MeV.configure(state=tk.DISABLED)
             self.chb200MeV.configure(state=tk.DISABLED)
             self.chb500MeV.configure(state=tk.DISABLED)
-        print(self.chbProtonFlux.get())
