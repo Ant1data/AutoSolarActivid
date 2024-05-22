@@ -5,15 +5,17 @@ import customtkinter as ctk
 from datetime import date
 from PIL import Image
 from view.timestampframe import TimestampFrame
+from view.videotypebutton import VideoTypeButton
 
 # Path to app/img folder, in order to get image files 
 IMG_FOLDER_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "img") # We take the directory name of the parent directory where this file is located + img directory
 
 class AppFrame(ctk.CTkScrollableFrame):
+
+    ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
-        ## VIEW ELEMENTS ----------------------------------------------------------------------------------------------------------- ##
         # ----- Title Bar ----- #
         self.frmTitleBar = ctk.CTkFrame(self, corner_radius=0)
         self.frmTitleBar.pack(anchor="center", fill="x")
@@ -38,14 +40,19 @@ class AppFrame(ctk.CTkScrollableFrame):
 
         # Proton Flux Graph Button
         self.icnGraph = ctk.CTkImage(Image.open(os.path.join(IMG_FOLDER_PATH, "graph.png"))) # Defining icon
-        self.btnProtonFluxGraph = ctk.CTkButton(self.frmVideoType, text="Proton flux graph", image=self.icnGraph, compound="top", cursor="hand2")
+        self.btnProtonFluxGraph = VideoTypeButton(self.frmVideoType, text="Proton flux graph", image=self.icnGraph, compound="top")
+        self.btnProtonFluxGraph.configure(command=lambda b=self.btnProtonFluxGraph: self.selectVideoTypeButton(b)) # Setting up command with itself as parameter 
         self.btnProtonFluxGraph.grid(row=1, column=0, sticky="e", padx=8)
 
         # Solar Activity Video Button
         self.icnSun = ctk.CTkImage(Image.open(os.path.join(IMG_FOLDER_PATH, "sun.png"))) # Defining icon
-        self.btnSolarActivityVideo = ctk.CTkButton(self.frmVideoType, text="Solar activity video", image=self.icnSun, compound="top", cursor="hand2")
+        self.btnSolarActivityVideo = VideoTypeButton(self.frmVideoType, fg_color=("orange"), text="Solar activity video", image=self.icnSun, compound="top")
+        self.btnSolarActivityVideo.configure(command=lambda b=self.btnSolarActivityVideo: self.selectVideoTypeButton(b)) # Setting up command with itself as parameter 
         self.btnSolarActivityVideo.grid(row=1, column=1, sticky="w", padx=8)
 
+        # Dictionary to define which button is selected
+        self.dctSelection = {self.btnProtonFluxGraph : True, self.btnSolarActivityVideo : False}
+        self.updateVideoTypeButtons() 
 
         # ----- Timestamps Frame ----- #
         self.frmTimestamps = ctk.CTkFrame(self)
@@ -127,7 +134,10 @@ class AppFrame(ctk.CTkScrollableFrame):
         # ----- Generate Button ----- #
         self.btnGenerate = ctk.CTkButton(self, text="Generate")
         self.btnGenerate.pack(anchor="center", pady=10)
+    ## --------------------------------------------------------------------------------------------------------------------- ##
 
+
+    ## METHODS ------------------------------------------------------------------------------------------------------------- ##
 
     ## This function, triggered by self.chbProtonFlux, changes sub-checkboxes' states
     ## If self.chbProtonFlux is on, they become enabled,
@@ -145,3 +155,36 @@ class AppFrame(ctk.CTkScrollableFrame):
             self.chb500MeV.configure(state=tk.DISABLED)
 
     
+    ## This function, triggered by a VideoTypeButton, sets the boolean value
+    ## for button selection on the dctSelection dictionary
+    def selectVideoTypeButton(self, idVideoTypeButton):
+
+        # We check every key, which corresponds to a VideoTypeButton
+        for key in self.dctSelection.keys():
+
+            # If the current key equals to the calling VideoTypeButton
+            if key == idVideoTypeButton:
+                self.dctSelection[key] = True
+            else:
+                self.dctSelection[key] = False
+
+        # We update every button's color
+        self.updateVideoTypeButtons() 
+        
+
+    ## This function updates every VideoTypeButton,
+    ## according to dctSelection
+    def updateVideoTypeButtons(self):
+
+        # We browse every couple VideoTypeButton/Boolean element in the dictionary
+        for key, value in self.dctSelection.items():
+
+            # If the button is selected
+            if value == True:
+                key.select()                
+
+            # If not
+            else:
+                key.deselect()
+
+                

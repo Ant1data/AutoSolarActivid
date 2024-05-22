@@ -9,6 +9,7 @@ DESELECTED_HOVER_COLORS = ("gray70", "gray10")
 DESELECTED_TEXT_COLORS = ("black", "white")
 
 class VideoTypeButton(ctk.CTkButton):
+
     ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs) # We call the CTkButton constructor
@@ -53,12 +54,12 @@ class VideoTypeButton(ctk.CTkButton):
     ## and update the colors
     def select(self):
         self.selected = True
-        self.update_colors
+        self.update_colors()
 
     ## Function to switch to deselected state
     ## and update the colors
     def deselect(self):
         self.selected = False
-        self.update_colors
+        self.update_colors()
         
     
