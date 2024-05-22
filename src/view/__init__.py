@@ -1,4 +1,4 @@
 from .appframe import AppFrame
 from .timestampframe import TimestampFrame
 
-__all__ = ['AppFrame', 'TimestampFrame']
+__all__ = ['AppFrame', 'TimestampFrame', 'VideoTypeButton']
