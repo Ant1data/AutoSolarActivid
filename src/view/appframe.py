@@ -4,6 +4,7 @@ import customtkinter as ctk
 
 from datetime import date
 from PIL import Image
+from view.titlebar import TitleBar
 from view.timestampframe import TimestampFrame
 from view.videotypebutton import VideoTypeButton
 
@@ -17,12 +18,8 @@ class AppFrame(ctk.CTkScrollableFrame):
         super().__init__(master, **kwargs)
 
         # ----- Title Bar ----- #
-        self.frmTitleBar = ctk.CTkFrame(self, corner_radius=0)
+        self.frmTitleBar = TitleBar(self, corner_radius=0)
         self.frmTitleBar.pack(anchor="center", fill="x")
-
-        # Title Label
-        self.lblTitle = ctk.CTkLabel(self.frmTitleBar, text="SolarActivid", font=ctk.CTkFont(size=20, weight="bold"), )
-        self.lblTitle.pack(pady=10)
 
 
         # ----- Video Type Frame ----- #
@@ -38,11 +35,11 @@ class AppFrame(ctk.CTkScrollableFrame):
         self.lblVideoType = ctk.CTkLabel(self.frmVideoType, text="Video type")
         self.lblVideoType.grid(row=0, column=0, sticky="w", padx=8)
 
-        # Proton Flux Graph Button
+        # Particle Flux Graph Button
         self.icnGraph = ctk.CTkImage(Image.open(os.path.join(IMG_FOLDER_PATH, "graph.png"))) # Defining icon
-        self.btnProtonFluxGraph = VideoTypeButton(self.frmVideoType, text="Proton flux graph", image=self.icnGraph, compound="top")
-        self.btnProtonFluxGraph.configure(command=lambda b=self.btnProtonFluxGraph: self.selectVideoTypeButton(b)) # Setting up command with itself as parameter 
-        self.btnProtonFluxGraph.grid(row=1, column=0, sticky="e", padx=8)
+        self.btnParticleFluxGraph = VideoTypeButton(self.frmVideoType, text="Particle flux graph", image=self.icnGraph, compound="top")
+        self.btnParticleFluxGraph.configure(command=lambda b=self.btnParticleFluxGraph: self.selectVideoTypeButton(b)) # Setting up command with itself as parameter 
+        self.btnParticleFluxGraph.grid(row=1, column=0, sticky="e", padx=8)
 
         # Solar Activity Video Button
         self.icnSun = ctk.CTkImage(Image.open(os.path.join(IMG_FOLDER_PATH, "sun.png"))) # Defining icon
@@ -51,7 +48,7 @@ class AppFrame(ctk.CTkScrollableFrame):
         self.btnSolarActivityVideo.grid(row=1, column=1, sticky="w", padx=8)
 
         # Dictionary to define which button is selected
-        self.dctSelection = {self.btnProtonFluxGraph : True, self.btnSolarActivityVideo : False}
+        self.dctSelection = {self.btnParticleFluxGraph : True, self.btnSolarActivityVideo : False}
         self.updateVideoTypeButtons() 
 
         # ----- Timestamps Frame ----- #

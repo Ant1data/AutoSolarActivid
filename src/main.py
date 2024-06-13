@@ -1,5 +1,4 @@
 import customtkinter as ctk
-import time
 
 from view.appframe import AppFrame
 
