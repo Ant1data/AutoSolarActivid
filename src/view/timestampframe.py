@@ -1,5 +1,6 @@
 import tkinter as tk
 import customtkinter as ctk
+import datetime
 
 from tkcalendar import Calendar
 
@@ -26,7 +27,7 @@ class TimestampFrame(ctk.CTkFrame):
         self.lblBegin.grid(row=1, column=2)
 
         # Begin calendar
-        self.cldrBegin = Calendar(self, showweeknumbers=False, locale='fr_FR')
+        self.cldrBegin = Calendar(self, showweeknumbers=False, locale='en_US', maxdate=datetime.date.today())
         self.cldrBegin.grid(row=2, column=0, columnspan=5)
 
         # Begin time spinboxes
@@ -55,7 +56,7 @@ class TimestampFrame(ctk.CTkFrame):
         self.lblEnd.grid(row=1, column=8)
 
         # End calendar
-        self.cldrEnd = Calendar(self, showweeknumbers=False, locale='fr_FR')
+        self.cldrEnd = Calendar(self, showweeknumbers=False, locale='en_US', maxdate=datetime.date.today())
         self.cldrEnd.grid(row=2, column=6, columnspan=5)
 
         # End time spinboxes
