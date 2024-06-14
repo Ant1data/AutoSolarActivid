@@ -17,7 +17,7 @@ class TitleBar(ctk.CTkFrame):
         self.paddingFrame.pack(side="left", expand=False)
 
         # Defining Title label
-        self.lblTitle = ctk.CTkLabel(self, text="SolarActivid", font=ctk.CTkFont(size=20, weight="bold"), )
+        self.lblTitle = ctk.CTkLabel(self, text="SolarActivid", font=ctk.CTkFont(size=20, weight="bold"))
         self.lblTitle.pack(pady=10, side="left", expand=True)
         
         # Defining settings icon for both light and dark modes

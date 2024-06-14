@@ -13,6 +13,8 @@ class VideoTypeFrame(ctk.CTkFrame):
     ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+        
+        self.master = master
 
         # Grid layout configuration
         self.columnconfigure((0,1), weight=1)
@@ -36,7 +38,7 @@ class VideoTypeFrame(ctk.CTkFrame):
         self.btnSolarActivityVideo.grid(row=1, column=1, sticky="w", padx=8, pady=8)
 
         # Dictionary to define which button is selected
-        self.dctSelection = {self.btnParticleFluxGraph : True, self.btnSolarActivityVideo : False}
+        self.dctSelection = {self.btnParticleFluxGraph : False, self.btnSolarActivityVideo : True}
         self.updateVideoTypeButtons() 
     ## --------------------------------------------------------------------------------------------------------------------- ##
 
@@ -53,21 +55,25 @@ class VideoTypeFrame(ctk.CTkFrame):
         if self.dctSelection[buttonClicked] == True:
             only_one_selected = True
 
+            # Checking every button that is not the one clicked
             for oneButton in self.dctSelection.keys():
                 if oneButton != buttonClicked and self.dctSelection[oneButton] == True:
                     only_one_selected = False
             
             if not only_one_selected:
                 self.dctSelection[buttonClicked] = False
+        
+        # Case when the button was deselected
         else:
             self.dctSelection[buttonClicked] = True
 
-        # For debug
-        print("ButtonClicked :", buttonClicked)
-        print(self.dctSelection)
-
         # We update every button's color
         self.updateVideoTypeButtons()
+
+        # Case when the button clicked is the ParticleFluxGraph Button,
+        # We toggle the ParticleFluxOptions Frame
+        if buttonClicked == self.btnParticleFluxGraph:
+            self.master.toggle_ParticleFluxOptionsFrame(self.dctSelection[buttonClicked])
     
 
     ## This function updates every VideoTypeButton,
