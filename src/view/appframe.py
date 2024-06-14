@@ -26,66 +26,10 @@ class AppFrame(ctk.CTkScrollableFrame):
         self.frmVideoType = VideoTypeFrame(self)
         self.frmVideoType.pack(anchor="center", fill="x", pady=10)
 
-        # # Configuring grid layout for this frame
-        # self.frmVideoType.columnconfigure((0,1), weight=1)
-        # self.frmVideoType.rowconfigure(0, weight=1)
-        # self.frmVideoType.rowconfigure(1, weight=3)
-        # self.frmVideoType.pack(anchor="center", fill="x", pady=10)
-
-        # # Video Type Label
-        # self.lblVideoType = ctk.CTkLabel(self.frmVideoType, text="Video type")
-        # self.lblVideoType.grid(row=0, column=0, sticky="w", padx=8)
-
-        # # Particle Flux Graph Button
-        # self.icnGraph = ctk.CTkImage(Image.open(os.path.join(IMG_FOLDER_PATH, "graph.png"))) # Defining icon
-        # self.btnParticleFluxGraph = VideoTypeButton(self.frmVideoType, text="Particle flux graph", image=self.icnGraph, compound="top")
-        # self.btnParticleFluxGraph.configure(command=lambda b=self.btnParticleFluxGraph: self.selectVideoTypeButton(b)) # Setting up command with itself as parameter 
-        # self.btnParticleFluxGraph.grid(row=1, column=0, sticky="e", padx=8)
-
-        # # Solar Activity Video Button
-        # self.icnSun = ctk.CTkImage(Image.open(os.path.join(IMG_FOLDER_PATH, "sun.png"))) # Defining icon
-        # self.btnSolarActivityVideo = VideoTypeButton(self.frmVideoType, fg_color=("orange"), text="Solar activity video", image=self.icnSun, compound="top")
-        # self.btnSolarActivityVideo.configure(command=lambda b=self.btnSolarActivityVideo: self.selectVideoTypeButton(b)) # Setting up command with itself as parameter 
-        # self.btnSolarActivityVideo.grid(row=1, column=1, sticky="w", padx=8)
-
-        # # Dictionary to define which button is selected
-        # self.dctSelection = {self.btnParticleFluxGraph : True, self.btnSolarActivityVideo : False}
-        # self.updateVideoTypeButtons() 
 
         # ----- Timestamps Frame ----- #
-        self.frmTimestamps = ctk.CTkFrame(self)
-
-        # Configuring grid layout for Timestamps frame
-        self.frmTimestamps.columnconfigure((0,2), weight=4)
-        self.frmTimestamps.columnconfigure(1, weight=1)
-        self.frmTimestamps.rowconfigure((0,1), weight=1)
-        self.frmTimestamps.rowconfigure(2, weight=3)
+        self.frmTimestamps = TimestampFrame(self)
         self.frmTimestamps.pack(anchor="center", fill="x", pady=10)
-
-        # Timestamp label
-        self.lblTimestamps = ctk.CTkLabel(self.frmTimestamps, text="Timestamps")
-        self.lblTimestamps.grid(row=0, column=0, sticky="w", padx=8)
-
-        # Begin label
-        self.lblBegin = ctk.CTkLabel(self.frmTimestamps, text="Begin")
-        self.lblBegin.grid(row=1, column=0)
-
-        # End label
-        self.lblEnd = ctk.CTkLabel(self.frmTimestamps, text="End")
-        self.lblEnd.grid(row=1, column=2)
-
-
-        # --- Begin TimestampFrame --- #
-        self.tsfBegin = TimestampFrame(self.frmTimestamps, fg_color="transparent")
-        self.tsfBegin.grid(row=2, column=0) 
-
-        # --- Separator frame --- #
-        self.frmSeparator = ctk.CTkFrame(self.frmTimestamps, width=2, fg_color="gray20")
-        self.frmSeparator.grid(row=1, column=1, rowspan=2, sticky="ns")
-
-        # --- End TimestampFrame --- #
-        self.tsfEnd = TimestampFrame(self.frmTimestamps, fg_color="transparent")
-        self.tsfEnd.grid(row=2, column=2)
 
 
         # ----- Energy Frame ----- #
