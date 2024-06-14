@@ -4,6 +4,7 @@ import customtkinter as ctk
 
 from datetime import date
 from PIL import Image
+from view.energyframe import EnergyFrame
 from view.titlebar import TitleBar
 from view.timestampframe import TimestampFrame
 from view.videotypeframe import VideoTypeFrame
@@ -33,28 +34,28 @@ class AppFrame(ctk.CTkScrollableFrame):
 
 
         # ----- Energy Frame ----- #
-        self.frmEnergy = ctk.CTkFrame(self)
+        self.frmEnergy = EnergyFrame(self)
         self.frmEnergy.pack(anchor="center", fill="x", pady=10)
 
-        # Energy label
-        self.lblEnergy = ctk.CTkLabel(self.frmEnergy, text="Energy")
-        self.lblEnergy.pack(padx=8, anchor="w")
+        # # Energy label
+        # self.lblEnergy = ctk.CTkLabel(self.frmEnergy, text="Energy")
+        # self.lblEnergy.pack(padx=8, anchor="w")
 
-        # Proton Flux CheckBox
-        self.chbProtonFlux = ctk.CTkCheckBox(self.frmEnergy, text="Proton Flux", border_width=1, checkbox_height=18, checkbox_width=18, command=self.switch_states_proton_subcheckboxes)
-        self.chbProtonFlux.pack(anchor="w", padx=8)
+        # # Proton Flux CheckBox
+        # self.chbProtonFlux = ctk.CTkCheckBox(self.frmEnergy, text="Proton Flux", border_width=1, checkbox_height=18, checkbox_width=18, command=self.switch_states_proton_subcheckboxes)
+        # self.chbProtonFlux.pack(anchor="w", padx=8)
 
-        # Sub-Checkboxes for energy selection
-        self.chb100MeV = ctk.CTkCheckBox(self.frmEnergy, text="< 100 MeV", border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED)
-        self.chb100MeV.pack(anchor="w", padx=16)
-        self.chb200MeV = ctk.CTkCheckBox(self.frmEnergy, text="< 200 MeV", border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED)
-        self.chb200MeV.pack(anchor="w", padx=16)
-        self.chb500MeV = ctk.CTkCheckBox(self.frmEnergy, text="< 500 MeV", border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED)
-        self.chb500MeV.pack(anchor="w", padx=16)
+        # # Sub-Checkboxes for energy selection
+        # self.chb100MeV = ctk.CTkCheckBox(self.frmEnergy, text="< 100 MeV", border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED)
+        # self.chb100MeV.pack(anchor="w", padx=16)
+        # self.chb200MeV = ctk.CTkCheckBox(self.frmEnergy, text="< 200 MeV", border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED)
+        # self.chb200MeV.pack(anchor="w", padx=16)
+        # self.chb500MeV = ctk.CTkCheckBox(self.frmEnergy, text="< 500 MeV", border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED)
+        # self.chb500MeV.pack(anchor="w", padx=16)
 
-        # Neutron Flux CheckBox
-        self.chbNeutronFlux = ctk.CTkCheckBox(self.frmEnergy, text="Neutron Flux", border_width=1, checkbox_height=18, checkbox_width=18)
-        self.chbNeutronFlux.pack(anchor="w", padx=8)
+        # # Neutron Flux CheckBox
+        # self.chbNeutronFlux = ctk.CTkCheckBox(self.frmEnergy, text="Neutron Flux", border_width=1, checkbox_height=18, checkbox_width=18)
+        # self.chbNeutronFlux.pack(anchor="w", padx=8)
 
 
         # ----- Comment Frame ----- #
@@ -81,20 +82,20 @@ class AppFrame(ctk.CTkScrollableFrame):
 
     ## METHODS ------------------------------------------------------------------------------------------------------------- ##
 
-    ## This function, triggered by self.chbProtonFlux, changes sub-checkboxes' states
-    ## If self.chbProtonFlux is on, they become enabled,
-    ## Otherwise, they become disabled
-    def switch_states_proton_subcheckboxes(self):
-        # Enabled
-        if self.chbProtonFlux.get() == 1:
-            self.chb100MeV.configure(state=tk.NORMAL)
-            self.chb200MeV.configure(state=tk.NORMAL)
-            self.chb500MeV.configure(state=tk.NORMAL)
-        # Disabled
-        else:
-            self.chb100MeV.configure(state=tk.DISABLED)
-            self.chb200MeV.configure(state=tk.DISABLED)
-            self.chb500MeV.configure(state=tk.DISABLED)
+    # ## This function, triggered by self.chbProtonFlux, changes sub-checkboxes' states
+    # ## If self.chbProtonFlux is on, they become enabled,
+    # ## Otherwise, they become disabled
+    # def switch_states_proton_subcheckboxes(self):
+    #     # Enabled
+    #     if self.chbProtonFlux.get() == 1:
+    #         self.chb100MeV.configure(state=tk.NORMAL)
+    #         self.chb200MeV.configure(state=tk.NORMAL)
+    #         self.chb500MeV.configure(state=tk.NORMAL)
+    #     # Disabled
+    #     else:
+    #         self.chb100MeV.configure(state=tk.DISABLED)
+    #         self.chb200MeV.configure(state=tk.DISABLED)
+    #         self.chb500MeV.configure(state=tk.DISABLED)
 
     
     # ## This function, triggered by a VideoTypeButton, sets the boolean value
