@@ -27,13 +27,13 @@ class VideoTypeFrame(ctk.CTkFrame):
         self.icnGraph = ctk.CTkImage(Image.open(os.path.join(IMG_FOLDER_PATH, "graph.png"))) # Defining icon
         self.btnParticleFluxGraph = VideoTypeButton(self, text="Particle flux graph", image=self.icnGraph, compound="top")
         self.btnParticleFluxGraph.configure(command=lambda b=self.btnParticleFluxGraph: self.VideoTypeButtonClicked(b)) # Setting up command with itself as parameter 
-        self.btnParticleFluxGraph.grid(row=1, column=0, sticky="e", padx=8)
+        self.btnParticleFluxGraph.grid(row=1, column=0, sticky="e", padx=8, pady=8)
 
         # Solar Activity Video Button
         self.icnSun = ctk.CTkImage(Image.open(os.path.join(IMG_FOLDER_PATH, "sun.png"))) # Defining icon
         self.btnSolarActivityVideo = VideoTypeButton(self, fg_color=("orange"), text="Solar activity video", image=self.icnSun, compound="top")
         self.btnSolarActivityVideo.configure(command=lambda b=self.btnSolarActivityVideo: self.VideoTypeButtonClicked(b)) # Setting up command with itself as parameter 
-        self.btnSolarActivityVideo.grid(row=1, column=1, sticky="w", padx=8)
+        self.btnSolarActivityVideo.grid(row=1, column=1, sticky="w", padx=8, pady=8)
 
         # Dictionary to define which button is selected
         self.dctSelection = {self.btnParticleFluxGraph : True, self.btnSolarActivityVideo : False}
@@ -54,7 +54,7 @@ class VideoTypeFrame(ctk.CTkFrame):
             only_one_selected = True
 
             for oneButton in self.dctSelection.keys():
-                if oneButton != buttonClicked and self.dctSelection[buttonClicked] == True:
+                if oneButton != buttonClicked and self.dctSelection[oneButton] == True:
                     only_one_selected = False
             
             if not only_one_selected:
