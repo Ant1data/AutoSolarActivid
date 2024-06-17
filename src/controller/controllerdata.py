@@ -1,0 +1,9 @@
+class ControllerData():
+    def __init__(self, frmApp):
+        
+        # Initializing userRequest dictionary
+        self.userRequest = {}
+        
+        # Initializing App Frame 
+        self.frmApp = frmApp
+        
