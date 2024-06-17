@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from tkinter import filedialog
 
-class SettingsPanel(ctk.CTkFrame):
+class SettingsFrame(ctk.CTkFrame):
 
     ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
     def __init__(self, master, **kwargs):
@@ -100,6 +100,6 @@ class SettingsPanel(ctk.CTkFrame):
 # Example usage
 if __name__ == "__main__":
     app = ctk.CTk()
-    settings_panel = SettingsPanel(app)
-    settings_panel.pack(padx=20, pady=20)
+    frmSettings = SettingsFrame(app)
+    frmSettings.pack(padx=20, pady=20)
     app.mainloop()
