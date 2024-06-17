@@ -1,6 +1,10 @@
 import customtkinter as ctk
 import tkinter as tk
 
+from controller.controllerdata import ControllerData
+from view.appframe import AppFrame
+from view.settingsframe import SettingsFrame
+
 class AppHandler():
 
     def __init__(self):
@@ -13,6 +17,14 @@ class AppHandler():
         self.main_window.geometry("800x800")
         self.main_window.minsize(500, 375)
         self.main_window.title("SolarActivid")
+
+        # Creating the main app frame
+        self.frmApp = AppFrame(self.main_window, width=1200, height=1400, fg_color="white")
+        self.frmApp.pack()
+
+        # Creating the data controller for the app
+        self.dataController = ControllerData() # Not sure about that 
+                                               # I think that AppFrame is more likely to create the Controller
 
         # Launching app
         self.main_window.mainloop()
