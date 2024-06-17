@@ -19,20 +19,20 @@ class SettingsPanel(ctk.CTkFrame):
         self.lblVideoSettings = ctk.CTkLabel(self.frmVideo, text="Video Settings", font=ctk.CTkFont(size=14, weight="bold"))
         self.lblVideoSettings.grid(row=0, column=0, sticky="w", padx=8)
 
-        # Input File Path
-        self.lblInputPath = ctk.CTkLabel(self.frmVideo, text="Input File Path:")
+        # Input folder path
+        self.lblInputPath = ctk.CTkLabel(self.frmVideo, text="Input folder path:")
         self.lblInputPath.grid(row=1, column=0, padx=10, pady=5, sticky="e")
         self.entInputPath = ctk.CTkEntry(self.frmVideo, width=250)
         self.entInputPath.grid(row=1, column=1, padx=10, pady=5)
-        self.btnBrowseInput = ctk.CTkButton(self.frmVideo, text="Browse", command=self.browse_input_file)
+        self.btnBrowseInput = ctk.CTkButton(self.frmVideo, text="Browse", command=self.browse_input_folder)
         self.btnBrowseInput.grid(row=1, column=2, padx=10, pady=5)
 
-        # Output File Path
-        self.lblOutputPath = ctk.CTkLabel(self.frmVideo, text="Output File Path:")
+        # Output folder path
+        self.lblOutputPath = ctk.CTkLabel(self.frmVideo, text="Output folder path:")
         self.lblOutputPath.grid(row=2, column=0, padx=10, pady=5, sticky="e")
         self.entOutputPath = ctk.CTkEntry(self.frmVideo, width=250)
         self.entOutputPath.grid(row=2, column=1, padx=10, pady=5)
-        self.btnBrowseOutput = ctk.CTkButton(self.frmVideo, text="Browse", command=self.browse_output_file)
+        self.btnBrowseOutput = ctk.CTkButton(self.frmVideo, text="Browse", command=self.browse_output_folder)
         self.btnBrowseOutput.grid(row=2, column=2, padx=10, pady=5)
 
         # Video Format
@@ -79,18 +79,23 @@ class SettingsPanel(ctk.CTkFrame):
 
     ## --------------------------------------------------------------------------------------------------------------------- ##
 
+    ## METHODS ------------------------------------------------------------------------------------------------------------- ##
 
-    def browse_input_file(self):
-        file_path = filedialog.askopenfilename()
-        if file_path:
+    ## This function, triggered by btnBrowseInput, opens a dialog window to choose the input folder
+    ## where solar activity images are stored
+    def browse_input_folder(self):
+        folder_path = filedialog.askdirectory(title="Choose input folder...")
+        if folder_path:
             self.entInputPath.delete(0, ctk.END)
-            self.entInputPath.insert(0, file_path)
+            self.entInputPath.insert(0, folder_path)
 
-    def browse_output_file(self):
-        file_path = filedialog.asksaveasfilename(defaultextension=".mp4", filetypes=[("MP4 files", "*.mp4"), ("All files", "*.*")])
-        if file_path:
+    ## This function, triggered by btnBrowseOutput, opens a dialog window to choose the output folder
+    ## where rendered videos will be stored
+    def browse_output_folder(self):
+        folder_path = filedialog.askdirectory(title="Choose output folder...")
+        if folder_path:
             self.entOutputPath.delete(0, ctk.END)
-            self.entOutputPath.insert(0, file_path)
+            self.entOutputPath.insert(0, folder_path)
 
 # Example usage
 if __name__ == "__main__":
