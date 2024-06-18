@@ -2,8 +2,10 @@ import os
 import tkinter as tk
 import customtkinter as ctk
 
-from datetime import date
+from datetime import date, datetime
 from PIL import Image
+
+from controller.controllerdata import ControllerData
 from view.commentframe import CommentFrame
 from view.energyframe import EnergyFrame
 from view.titlebar import TitleBar
@@ -52,10 +54,13 @@ class AppFrame(ctk.CTkScrollableFrame):
 
 
         # ----- Generate Button ----- #
-        self.btnGenerate = ctk.CTkButton(self, text="Generate")
+        self.btnGenerate = ctk.CTkButton(self, text="Generate", command=self.btnGenerateClicked)
         self.btnGenerate.pack(anchor="center", pady=10)
 
-        self.frmEnergy
+        
+        # ----- Initializing dataController ----- #
+        self.dataController = ControllerData(self) # Giving itself as frmApp
+
     ## --------------------------------------------------------------------------------------------------------------------- ##
 
     ## METHODS ------------------------------------------------------------------------------------------------------------- ##
@@ -63,7 +68,7 @@ class AppFrame(ctk.CTkScrollableFrame):
     ## This function, triggered by the Particle Flux Graph button,
     ## makes the ParticleFluxOptionsFrame appear if the button is
     ## selected, and make disappear otherwise
-    def toggle_ParticleFluxOptionsFrame(self, button_is_selected: bool):
+    def toggle_ParticleFluxOptionsFrame(self, button_is_selected):
         if button_is_selected:
             # We put back the frame on the interface, before the Comment Frame
             self.frmParticleFluxOptions.pack(before=self.frmComment, anchor="center", fill="x")
@@ -71,3 +76,45 @@ class AppFrame(ctk.CTkScrollableFrame):
         else:
             # We remove the Frame from the interface, without destroying it
             self.frmParticleFluxOptions.pack_forget()
+
+    ## This function, triggered by a click on btnGenerate, 
+    ## makes a dictionary of what the user selected in the frame
+    ## and gives to dataController, in order to make a query
+    def btnGenerateClicked(self):
+        
+        # Initializing user_request dictionary
+        user_request = {}
+
+        # Getting selected video type buttons
+        user_request.update(self.frmVideoType.dctSelection)
+
+        # Getting Particle Flux Graph options if this type is selected
+        if user_request["btnParticleFluxGraph"] == True:
+
+            # ----- Timestamps information ----- #
+
+            # Begin date
+            user_request["BeginDate"] = self.frmTimestamps.cldrBegin.selection_get()
+
+            # Begin time 
+            hour = self.frmTimestamps.spbBeginHour.get()
+            minute = self.frmTimestamps.spbBeginMinute.get()
+            second = self.frmTimestamps.spbBeginSecond.get()
+            time = f'{hour}:{minute}:{second}' # Gathering values into a string
+            user_request["BeginTime"] = datetime.strptime(time, "%H:%M:%S") # Converting time string into datetime format
+            
+            # End date
+            user_request["EndDate"] = self.frmTimestamps.cldrEnd.selection_get()
+
+            # End time 
+            hour = self.frmTimestamps.spbEndHour.get()
+            minute = self.frmTimestamps.spbEndMinute.get()
+            second = self.frmTimestamps.spbEndSecond.get()
+            time = f'{hour}:{minute}:{second}' # Gathering values into a string
+            user_request["EndTime"] = datetime.strptime(time, "%H:%M:%S") # Converting time string into datetime format
+            
+
+        # Passing the user request to the data controller
+        self.dataController.btnGenerateClicked(user_request=user_request)
+
+        
