@@ -25,17 +25,17 @@ class VideoTypeFrame(ctk.CTkFrame):
         self.lblVideoType = ctk.CTkLabel(self, text="Video type")
         self.lblVideoType.grid(row=0, column=0, sticky="w", padx=8)
 
-        # Particle Flux Graph Button
-        self.icnGraph = ctk.CTkImage(Image.open(os.path.join(IMG_FOLDER_PATH, "graph.png"))) # Defining icon
-        self.btnParticleFluxGraph = VideoTypeButton(self, text="Particle flux graph", image=self.icnGraph, compound="top")
-        self.btnParticleFluxGraph.configure(command=lambda b=self.btnParticleFluxGraph: self.VideoTypeButtonClicked(b)) # Setting up command with itself as parameter 
-        self.btnParticleFluxGraph.grid(row=1, column=0, sticky="e", padx=8, pady=8)
-
         # Solar Activity Video Button
         self.icnSun = ctk.CTkImage(Image.open(os.path.join(IMG_FOLDER_PATH, "sun.png"))) # Defining icon
         self.btnSolarActivityVideo = VideoTypeButton(self, fg_color=("orange"), text="Solar activity video", image=self.icnSun, compound="top")
         self.btnSolarActivityVideo.configure(command=lambda b=self.btnSolarActivityVideo: self.VideoTypeButtonClicked(b)) # Setting up command with itself as parameter 
-        self.btnSolarActivityVideo.grid(row=1, column=1, sticky="w", padx=8, pady=8)
+        self.btnSolarActivityVideo.grid(row=1, column=0, sticky="e", padx=8, pady=8)
+
+        # Particle Flux Graph Button
+        self.icnGraph = ctk.CTkImage(Image.open(os.path.join(IMG_FOLDER_PATH, "graph.png"))) # Defining icon
+        self.btnParticleFluxGraph = VideoTypeButton(self, text="Particle flux graph", image=self.icnGraph, compound="top")
+        self.btnParticleFluxGraph.configure(command=lambda b=self.btnParticleFluxGraph: self.VideoTypeButtonClicked(b)) # Setting up command with itself as parameter 
+        self.btnParticleFluxGraph.grid(row=1, column=1, sticky="w", padx=8, pady=8)
 
         # Dictionary to define which button is selected
         self._dctSelection = {self.btnParticleFluxGraph : False, self.btnSolarActivityVideo : True}
