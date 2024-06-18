@@ -45,10 +45,10 @@ class VideoTypeFrame(ctk.CTkFrame):
 
     ## METHODS ------------------------------------------------------------------------------------------------------------- ##
 
-    ## Getter of dctSelection dictionary
+    ## Getter of dctSelection dictionary, where the keys are string
     @property
     def dctSelection(self):
-        return self._dctSelection
+        return {"btnParticleFluxGraph" : self._dctSelection[self.btnParticleFluxGraph], "btnSolarActivityVideo" : self._dctSelection[self.btnSolarActivityVideo]}
     
     ## Setter of dctSelection dictionary
     @dctSelection.setter
