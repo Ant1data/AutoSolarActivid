@@ -6,4 +6,6 @@ class ControllerData():
         
         # Initializing App Frame 
         self.frmApp = frmApp
-        
+
+    def btnGenerateClicked(self, user_request):
+        self.userRequest = user_request
