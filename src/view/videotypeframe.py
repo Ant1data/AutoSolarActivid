@@ -38,12 +38,23 @@ class VideoTypeFrame(ctk.CTkFrame):
         self.btnSolarActivityVideo.grid(row=1, column=1, sticky="w", padx=8, pady=8)
 
         # Dictionary to define which button is selected
-        self.dctSelection = {self.btnParticleFluxGraph : False, self.btnSolarActivityVideo : True}
+        self._dctSelection = {self.btnParticleFluxGraph : False, self.btnSolarActivityVideo : True}
         self.updateVideoTypeButtons() 
     ## --------------------------------------------------------------------------------------------------------------------- ##
 
 
     ## METHODS ------------------------------------------------------------------------------------------------------------- ##
+
+    ## Getter of dctSelection dictionary
+    @property
+    def dctSelection(self):
+        return self._dctSelection
+    
+    ## Setter of dctSelection dictionary
+    @dctSelection.setter
+    def dctSelection(self, newDctSelection):
+        self._dctSelection = newDctSelection
+
 
     ## This function, triggered by a VideoTypeButton, sets the boolean value
     ## for button selection on the dctSelection dictionary
@@ -52,20 +63,20 @@ class VideoTypeFrame(ctk.CTkFrame):
 
         # Checking if the button clicked is the only one on True.
         # If so, we skip the deselection
-        if self.dctSelection[buttonClicked] == True:
+        if self._dctSelection[buttonClicked] == True:
             only_one_selected = True
 
             # Checking every button that is not the one clicked
-            for oneButton in self.dctSelection.keys():
-                if oneButton != buttonClicked and self.dctSelection[oneButton] == True:
+            for oneButton in self._dctSelection.keys():
+                if oneButton != buttonClicked and self._dctSelection[oneButton] == True:
                     only_one_selected = False
             
             if not only_one_selected:
-                self.dctSelection[buttonClicked] = False
+                self._dctSelection[buttonClicked] = False
         
         # Case when the button was deselected
         else:
-            self.dctSelection[buttonClicked] = True
+            self._dctSelection[buttonClicked] = True
 
         # We update every button's color
         self.updateVideoTypeButtons()
@@ -73,7 +84,7 @@ class VideoTypeFrame(ctk.CTkFrame):
         # Case when the button clicked is the ParticleFluxGraph Button,
         # We toggle the ParticleFluxOptions Frame
         if buttonClicked == self.btnParticleFluxGraph:
-            self.master.toggle_ParticleFluxOptionsFrame(self.dctSelection[buttonClicked])
+            self.master.toggle_ParticleFluxOptionsFrame(self._dctSelection[buttonClicked])
     
 
     ## This function updates every VideoTypeButton,
@@ -81,7 +92,7 @@ class VideoTypeFrame(ctk.CTkFrame):
     def updateVideoTypeButtons(self):
 
         # We browse every couple VideoTypeButton/Boolean element in the dictionary
-        for key, value in self.dctSelection.items():
+        for key, value in self._dctSelection.items():
 
             # If the button is selected
             if value == True:
