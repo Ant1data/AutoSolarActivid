@@ -18,13 +18,9 @@ class AppHandler():
         self.main_window.minsize(500, 375)
         self.main_window.title("SolarActivid")
 
-        # Creating the main app frame
+        # Creating the main AppFrame
         self.frmApp = AppFrame(self.main_window, width=1200, height=1400, fg_color="white")
         self.frmApp.pack()
-
-        # Creating the data controller for the app
-        self.dataController = ControllerData() # Not sure about that 
-                                               # I think that AppFrame is more likely to create the Controller
 
         # Launching app
         self.main_window.mainloop()
