@@ -80,42 +80,47 @@ class SettingsFrame(ctk.CTkFrame):
         self.swcUseProxy = ctk.CTkSwitch(self.frmProxyConfiguration, text="Use Proxy", command=self.toggle_swcUseProxy, variable=self.swcUseProxyValue, onvalue=True, offvalue=False)
         self.swcUseProxy.grid(row=0, column=0, padx=10, pady=5, sticky="e")
 
+        # Proxy protocol
+        self.lblProxyProtocol = ctk.CTkLabel(self.frmProxyConfiguration, text="Proxy Protocol:")
+        self.lblProxyProtocol.grid(row=1, column=0, padx=10, pady=5, sticky="e")
+
+        self.cmbProxyProtocol = ctk.CTkComboBox(self.frmProxyConfiguration, values=["HTTP", "HTTPS", "SOCKS5"])
+        self.cmbProxyProtocol.grid(row=1, column=1, padx=10, pady=5)
 
         # Proxy address
         self.lblProxyAddress = ctk.CTkLabel(self.frmProxyConfiguration, text="Proxy Address:")
-        self.lblProxyAddress.grid(row=1, column=0, padx=10, pady=5, sticky="e")
+        self.lblProxyAddress.grid(row=2, column=0, padx=10, pady=5, sticky="e")
 
         self.entProxyAddress = ctk.CTkEntry(self.frmProxyConfiguration, width=250)
-        self.entProxyAddress.grid(row=1, column=1, padx=10, pady=5)
+        self.entProxyAddress.grid(row=2, column=1, padx=10, pady=5)
 
         # Proxy port
         self.lblProxyPort = ctk.CTkLabel(self.frmProxyConfiguration, text="Proxy Port:")
-        self.lblProxyPort.grid(row=2, column=0, padx=10, pady=5, sticky="e")
+        self.lblProxyPort.grid(row=3, column=0, padx=10, pady=5, sticky="e")
         
         self.entProxyPort = ctk.CTkEntry(self.frmProxyConfiguration, width=100)
-        self.entProxyPort.grid(row=2, column=1, padx=10, pady=5, sticky="w")
-
+        self.entProxyPort.grid(row=3, column=1, padx=10, pady=5, sticky="w")
 
         # --- Proxy Authentication Part --- #
 
         # Use Authentication Switch
         self.swcUseAuthValue = tk.BooleanVar(value=False)
         self.swcUseAuth = ctk.CTkSwitch(self.frmProxyConfiguration, text="Use Authentication", command=self.toggle_swcUseAuth, variable=self.swcUseAuthValue, onvalue=True, offvalue=False)
-        self.swcUseAuth.grid(row=3, column=0, padx=10, pady=5, sticky="w")
+        self.swcUseAuth.grid(row=4, column=0, padx=10, pady=5, sticky="w")
 
         # Username
         self.lblUsername = ctk.CTkLabel(self.frmProxyConfiguration, text="Username:")
-        self.lblUsername.grid(row=4, column=0, padx=10, pady=5, sticky="e")
+        self.lblUsername.grid(row=5, column=0, padx=10, pady=5, sticky="e")
 
         self.entUsername = ctk.CTkEntry(self.frmProxyConfiguration, width=250)
-        self.entUsername.grid(row=4, column=1, padx=10, pady=5)
+        self.entUsername.grid(row=5, column=1, padx=10, pady=5)
 
         # Password
         self.lblPassword = ctk.CTkLabel(self.frmProxyConfiguration, text="Password:")
-        self.lblPassword.grid(row=5, column=0, padx=10, pady=5, sticky="e")
+        self.lblPassword.grid(row=6, column=0, padx=10, pady=5, sticky="e")
 
         self.entPassword = ctk.CTkEntry(self.frmProxyConfiguration, width=250, show="●")
-        self.entPassword.grid(row=5, column=1, padx=10, pady=5)
+        self.entPassword.grid(row=6, column=1, padx=10, pady=5)
 
         # ----------------------------------- #
 
@@ -150,6 +155,7 @@ class SettingsFrame(ctk.CTkFrame):
         if self.swcUseProxyValue.get() == True:
 
             # We enable those elements
+            self.cmbProxyProtocol.configure(state=ctk.NORMAL)
             self.entProxyAddress.configure(state=ctk.NORMAL)
             self.entProxyPort.configure(state=ctk.NORMAL)
             self.swcUseAuth.configure(state=ctk.NORMAL)
@@ -161,6 +167,7 @@ class SettingsFrame(ctk.CTkFrame):
         # If switch is Off
         else:
             # We disable everything, no matter which part the element is in
+            self.cmbProxyProtocol.configure(state=ctk.DISABLED)
             self.entProxyAddress.configure(state=ctk.DISABLED)
             self.entProxyPort.configure(state=ctk.DISABLED)
             self.swcUseAuth.configure(state=ctk.DISABLED)
