@@ -17,24 +17,30 @@ class EnergyFrame(ctk.CTkFrame):
         self.lblEnergy.pack(padx=8, anchor="w")
 
         # Proton Flux CheckBox
-        self.chbProtonFlux = ctk.CTkCheckBox(self, text="Proton Flux", border_width=1, checkbox_height=18, checkbox_width=18, command=self.switch_states_proton_subcheckboxes)
+        self.chbProtonFluxValue = tk.BooleanVar()
+        self.chbProtonFlux = ctk.CTkCheckBox(self, text="Proton Flux", variable=self.chbProtonFluxValue, border_width=1, checkbox_height=18, checkbox_width=18, command=self.switch_states_proton_subcheckboxes)
         self.chbProtonFlux.pack(anchor="w", padx=8)
 
         # Sub-Checkboxes for energy selection
-        self.chb10MeV = ctk.CTkCheckBox(self, text=">= 10 MeV", border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+        self.chb10MeVValue = tk.BooleanVar()
+        self.chb10MeV = ctk.CTkCheckBox(self, text=">= 10 MeV", variable=self.chb10MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
         self.chb10MeV.pack(anchor="w", padx=16)
 
-        self.chb50MeV = ctk.CTkCheckBox(self, text=">= 50 MeV", border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+        self.chb50MeVValue = tk.BooleanVar()
+        self.chb50MeV = ctk.CTkCheckBox(self, text=">= 50 MeV", variable=self.chb50MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
         self.chb50MeV.pack(anchor="w", padx=16)
 
-        self.chb100MeV = ctk.CTkCheckBox(self, text=">= 100 MeV", border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+        self.chb100MeVValue = tk.BooleanVar()
+        self.chb100MeV = ctk.CTkCheckBox(self, text=">= 100 MeV", variable=self.chb100MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
         self.chb100MeV.pack(anchor="w", padx=16)
 
-        self.chb500MeV = ctk.CTkCheckBox(self, text=">= 500 MeV", border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+        self.chb500MeVValue = tk.BooleanVar()
+        self.chb500MeV = ctk.CTkCheckBox(self, text=">= 500 MeV", variable=self.chb500MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
         self.chb500MeV.pack(anchor="w", padx=16)
 
         # Neutron Flux CheckBox
-        self.chbNeutronFlux = ctk.CTkCheckBox(self, text="Neutron Flux", border_width=1, checkbox_height=18, checkbox_width=18)
+        self.chbNeutronFluxValue = tk.BooleanVar()
+        self.chbNeutronFlux = ctk.CTkCheckBox(self, text="Neutron Flux", variable=self.chbNeutronFluxValue, border_width=1, checkbox_height=18, checkbox_width=18)
         self.chbNeutronFlux.pack(anchor="w", padx=8)
     ## --------------------------------------------------------------------------------------------------------------------- ##  
 

@@ -91,7 +91,7 @@ class AppFrame(ctk.CTkScrollableFrame):
         # Getting Particle Flux Graph options if this type is selected
         if user_request["btnParticleFluxGraph"] == True:
 
-            # ----- Timestamps information ----- #
+            # ----- Timestamps data ----- #
 
             # Begin date
             user_request["BeginDate"] = self.frmTimestamps.cldrBegin.selection_get()
@@ -112,7 +112,24 @@ class AppFrame(ctk.CTkScrollableFrame):
             second = self.frmTimestamps.spbEndSecond.get()
             time = f'{hour}:{minute}:{second}' # Gathering values into a string
             user_request["EndTime"] = datetime.strptime(time, "%H:%M:%S") # Converting time string into datetime format
-            
+
+            # ----- Energy data ----- #
+
+            # Proton Flux
+            user_request["ProtonFlux"] = self.frmEnergy.chbProtonFluxValue.get()
+
+            # If Proton Flux is selected, we get the energy booleans
+            if user_request["ProtonFlux"] == True:
+                user_request["10Mev"] = self.frmEnergy.chb10MeVValue.get()
+                user_request["50Mev"] = self.frmEnergy.chb50MeVValue.get()
+                user_request["100Mev"] = self.frmEnergy.chb100MeVValue.get()
+                user_request["500Mev"] = self.frmEnergy.chb500MeVValue.get()
+
+            # Neutron Flux
+            user_request["NeutronFlux"] = self.frmEnergy.chbNeutronFluxValue.get()
+        
+        # Getting comment
+        user_request["Comment"] = self.frmComment.tbxComment.get("0.0", "end")
 
         # Passing the user request to the data controller
         self.dataController.btnGenerateClicked(user_request=user_request)
