@@ -9,3 +9,6 @@ class ControllerData():
 
     def btnGenerateClicked(self, user_request):
         self.userRequest = user_request
+        
+        # For debug
+        print(self.userRequest)
