@@ -19,7 +19,7 @@ class AppHandler():
         self.main_window.title("SolarActivid")
 
         # Creating the main AppFrame
-        self.frmApp = AppFrame(self.main_window, width=1200, height=1400, fg_color="white")
+        self.frmApp = AppFrame(self.main_window, width=1200, height=1400, fg_color=("white", "gray5"))
         self.frmApp.pack()
 
         # Launching app

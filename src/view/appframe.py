@@ -31,7 +31,7 @@ class AppFrame(ctk.CTkScrollableFrame):
         self.frmVideoType.pack(anchor="center", fill="x", pady=10)
 
         # ----- ParticleFluxOptionsFrame ----- #
-        self.frmParticleFluxOptions = ctk.CTkFrame(self)
+        self.frmParticleFluxOptions = ctk.CTkFrame(self, corner_radius=10, fg_color=("#c4d2ff","#272A33"))
 
         # Particle Flux Options Label
         self.lblParticleFluxOptions = ctk.CTkLabel(self.frmParticleFluxOptions, text="Particle Flux Options", text_color="#3A7EBF", font=ctk.CTkFont(size=16, weight="bold"))
