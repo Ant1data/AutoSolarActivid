@@ -1,14 +1,4 @@
-class ControllerData():
-    def __init__(self, frmApp):
-        
-        # Initializing userRequest dictionary
-        self.userRequest = {}
-        
-        # Initializing App Frame 
-        self.frmApp = frmApp
+from controllergeneral import ControllerGeneral
 
-    def btnGenerateClicked(self, user_request):
-        self.userRequest = user_request
-        
-        # For debug
-        print(self.userRequest)
+class ControllerData(ControllerGeneral):
+    pass
