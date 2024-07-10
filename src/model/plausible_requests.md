@@ -15,4 +15,4 @@ https://www.ncei.noaa.gov/products/goes-r-space-environment-in-situ
 Original site: https://www.nmdb.eu/nest/
 
 Example of request to make by SolarActivid
-```http://nest.nmdb.eu/draw_graph.php?stations[]=KERG&stations[]=TERA&output=ascii&start_year=2009&start_month=09&start_day=01&start_hour=00&start_min=00&end_year=2009&end_month=09&end_day=05&end_hour=23&end_min=59``` 
+```http://nest.nmdb.eu/draw_graph.php?stations[]=KERG&stations[]=TERA&output=ascii&start_year=2009&start_month=09&start_day=01&start_hour=00&start_min=00&end_year=2009&end_month=09&end_day=05&end_hour=23&end_min=59&yunits=0``` 
