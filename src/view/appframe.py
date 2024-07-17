@@ -115,18 +115,22 @@ class AppFrame(ctk.CTkScrollableFrame):
 
             # ----- Energy data ----- #
 
-            # Proton Flux
-            user_request["ProtonFlux"] = self.frmEnergy.chbProtonFluxValue.get()
+            # Building an inner dictionary for energy data
+            user_request["EnergyData"] = dict()
 
-            # If Proton Flux is selected, we get the energy booleans
-            if user_request["ProtonFlux"] == True:
-                user_request["10Mev"] = self.frmEnergy.chb10MeVValue.get()
-                user_request["50Mev"] = self.frmEnergy.chb50MeVValue.get()
-                user_request["100Mev"] = self.frmEnergy.chb100MeVValue.get()
-                user_request["500Mev"] = self.frmEnergy.chb500MeVValue.get()
+            # Proton Flux
+            user_request["EnergyData"]["ProtonFlux"] = self.frmEnergy.chbProtonFluxValue.get()
+
+            # If Proton Flux is selected, we get the energy booleans and store them in a dictionary
+            if user_request["EnergyData"]["ProtonFlux"] == True:
+                user_request["EnergyData"]["Energies"] = dict()
+                user_request["EnergyData"]["Energies"]["10Mev"] = self.frmEnergy.chb10MeVValue.get()
+                user_request["EnergyData"]["Energies"]["50Mev"] = self.frmEnergy.chb50MeVValue.get()
+                user_request["EnergyData"]["Energies"]["100Mev"] = self.frmEnergy.chb100MeVValue.get()
+                user_request["EnergyData"]["Energies"]["500Mev"] = self.frmEnergy.chb500MeVValue.get()
 
             # Neutron Flux
-            user_request["NeutronFlux"] = self.frmEnergy.chbNeutronFluxValue.get()
+            user_request["EnergyData"]["NeutronFlux"] = self.frmEnergy.chbNeutronFluxValue.get()
         
         # Getting comment
         user_request["Comment"] = self.frmComment.tbxComment.get("0.0", "end")
