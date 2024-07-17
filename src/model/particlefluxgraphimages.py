@@ -1,63 +1,154 @@
 import csv
-import datetime
+import datetime as dt
 import os
-import requests
 
 from datetime import datetime
 
 class ParticleFluxGraphImages():
 
-    # Constructor that will directly build the graph images,
-    def __init__(self, beginDateTime : datetime, endDateTime : datetime, dctEnergy : dict[str, bool]):
+    ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
+    ## It that will directly build the graph images
+    def __init__(self, beginDateTime : datetime, endDateTime : datetime, dctEnergy : dict[str, bool], image_width : float, image_height : float):
         
         # Defining attributes from parameters
         self.beginDateTime = beginDateTime
         self.endDateTime = endDateTime
         self.dctEnergy = dctEnergy
 
-        # Extracting the data from beginDateTime
-        start_year = self.beginDateTime.year
-        start_month = self.beginDateTime.month
-        start_day = self.beginDateTime.day
-        start_hour = self.beginDateTime.hour
-        start_min = self.beginDateTime.minute
+        # # Extracting the data from beginDateTime
+        # start_year = self.beginDateTime.year
+        # start_month = self.beginDateTime.month
+        # start_day = self.beginDateTime.day
+        # start_hour = self.beginDateTime.hour
+        # start_min = self.beginDateTime.minute
         
-        # Extracting the data from endDateTime
-        end_year = self.endDateTime.year
-        end_month = self.endDateTime.month
-        end_day = self.endDateTime.day
-        end_hour = self.endDateTime.hour
-        end_min = self.endDateTime.minute
+        # # Extracting the data from endDateTime
+        # end_year = self.endDateTime.year
+        # end_month = self.endDateTime.month
+        # end_day = self.endDateTime.day
+        # end_hour = self.endDateTime.hour
+        # end_min = self.endDateTime.minute
         
         
         ## ----- NEUTRON FLUX PART ----- ##
-        if dctEnergy["NeutronFlux"] == True:
+        if dctEnergy["NeutronFlux"]:
+            self.neutron_csv_to_dict(self.beginDateTime, self.endDateTime)
+    ## --------------------------------------------------------------------------------------------------------------------- ##
+    
 
-            # Requesting and storing the csv data in a temporary file
-            with open("src/tmp/neutron_flux.csv", "wb") as neutron_flux_file:
+
+    ## FUNCTIONS ----------------------------------------------------------------------------------------------------------- ##
+    # Function to convert CSV Neutron Flux data file into a legible dictionary for the graph video algorithm
+    def neutron_csv_to_dict(self, begin_date_time : datetime, end_date_time : datetime) -> dict:
+        
+        # Creating a dictionary that will store the neutron flux data
+        final_dict = dict()
+        
+        ### -------------------- /!\ TO CHANGE WHEN DEPLOYING THE APP /!\ -------------------- ###
+        
+        # Setting working directory to input
+        os.chdir('input')
+        
+        ### ---------------------------------------------------------------------------------- ###
+
+
+        ## ----- Checking every data file day per day ----- ##
+
+        current_date_time = begin_date_time # Initializing current datetime
+        while current_date_time <= end_date_time:
+            
+            # Importing year, month and day from current_date_time
+            year = current_date_time.strftime('%Y')
+            month = current_date_time.strftime('%m')
+            day = current_date_time.strftime('%d')
+        
+
+            # Building the filename
+            filename = f"neutron_flux_{year}_{month}_{day}.csv"
+
+
+            ## --- Changing header line --- ##
+            
+            # Opening the file and importing data
+            with open(filename, mode="r") as csv_file:
+            
+                # Importing file content in a list form
+                file_content = csv_file.readlines()
+
+                # Defining header string for the first line
+                header="start_date_time"
+
+                # Case when only one sensor is set on the file
+                if ("RCORR_E" in file_content[0] or "; Neutron flux" in file_content[0]):
+                    header = header + "; Neutron flux"
                 
-                # Defining the URL to call, with corresponding dates and times
-                # url = f"http://nest.nmdb.eu/draw_graph.php?formchk=1&stations[]=KERG&stations[]=TERA&output=ascii&start_year={start_year}&start_month={start_month}&start_day={start_day}&start_hour={start_hour}&start_min={start_min}&end_year={end_year}&end_month={end_month}&end_day={end_day}&end_hour={end_hour}&end_min={end_min}&yunits=0"
-                url = f"http://nest.nmdb.eu/draw_graph.php?formchk=1&stations[]=KERG&stations[]=KIEL&output=ascii&tabchoice=ori&dtype=corr_for_efficiency&date_choice=bydate&start_year=2009&start_month=09&start_day=01&start_hour=00&start_min=00&end_year=2009&end_month=09&end_day=05&end_hour=23&end_min=59&yunits=0"
-
-                # For debug
-                print("Downloading Neutron Flux data on NEST: ", url)
-
-                # Requesting
-                request_result = requests.get(url=url, proxies=proxies)
-
-                # Writing file
-                neutron_flux_file.write(request_result.content)
+                # Other cases when there are many other sensors
+                else:
+                    # Adding KERG and TERA on the header if they exist
+                    if ("KERG" in file_content[0]):
+                        header = header + "; KERG Neutron flux"
+                    if ("TERA" in file_content[0]):
+                        header = header + "; TERA Neutron flux"
                 
-                # Tu en es là bg
+                # Adding line break
+                header = header + "\n"
+                
+                # Setting the first line of the file to the content of header
+                file_content[0] = header
+
+            # Writing new content
+            with open(filename, mode="w") as csv_file:
+                csv_file.writelines(file_content)
+            ## ---------------------------- ##
+
+
+            ## --- Converting CSV file into dictionary --- ##
+
+            # Opening and reading CSV file
+            with open(filename, mode="r") as csv_file:    
+                csv_content = csv.DictReader(csv_file, delimiter=";")
+
+                # For every line of the CSV file 
+                for current_line in csv_content:
+
+                    # Converting datetimes into Python datetime format
+                    reconverted_datetime = datetime.strptime(current_line["start_date_time"], '%Y-%m-%d %H:%M:%S')
+                    current_line["start_date_time"] = reconverted_datetime
+
+                    # For every key in the current line dictionary
+                    for current_key in current_line.keys():
+
+                        # Setting final_dict's keys
+                        # if they are not already set
+                        if not current_key in final_dict.keys():
+                            final_dict[current_key] = []
+
+                        # Converting neutron flux data in float (if current_key contains "Neutron Flux")
+                        if "Neutron flux" in current_key:
+                            final_dict[current_key].append(float(current_line[current_key]))
+                        else:
+                            final_dict[current_key].append(current_line[current_key])
+
+            ## ------------------------------------------- ##
+
+            # We increment the current_date_time by one day
+            current_date_time += dt.timedelta(days=1)
+        ## ------------------------------------------------ ##
+
+        # For debug
+        print(final_dict)
+        return final_dict
+    ## --------------------------------------------------------------------------------------------------------------------- ##
+
+
 
 
 ## ---------- TEST ZONE ---------- ##
 
 # Defining parameters for the ParticleFluxGraphImages test instance
-begin_date_time = datetime(2024, 6, 6, 0, 0)
-end_date_time = datetime(2024, 6, 6, 23, 59)
+begin_date_time = datetime(2024, 6, 17, 0, 0)
+end_date_time = datetime(2024, 6, 18, 23, 59)
 dct_energy = {"NeutronFlux" : True}
 
 # Building a test object
-ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy)
+ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, image_width=1280, image_height=720)
