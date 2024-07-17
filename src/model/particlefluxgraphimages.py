@@ -29,16 +29,23 @@ class ParticleFluxGraphImages():
         # end_hour = self.endDateTime.hour
         # end_min = self.endDateTime.minute
         
-        
-        ## ----- NEUTRON FLUX PART ----- ##
+        # Getting Proton flux data if selected
+        if dctEnergy["ProtonFlux"]:
+            proton_flux_dictionary = self.proton_json_to_dict(self.beginDateTime, self.endDateTime, self.dctEnergy)
+
+        # Getting Neutron flux data if selected
         if dctEnergy["NeutronFlux"]:
-            self.neutron_csv_to_dict(self.beginDateTime, self.endDateTime)
+            neutron_flux_dictionary = self.neutron_csv_to_dict(self.beginDateTime, self.endDateTime)
     ## --------------------------------------------------------------------------------------------------------------------- ##
     
 
 
     ## FUNCTIONS ----------------------------------------------------------------------------------------------------------- ##
-    # Function to convert CSV Neutron Flux data file into a legible dictionary for the graph video algorithm
+    # Function to convert GOES Proton Flux data file in JSON into a legible dictionary for the graph video algorithm
+    def proton_json_to_dict(self, begin_date_time : datetime, end_date_time : datetime, energy_dict : dict) -> dict:
+        pass
+    
+    # Function to convert NEST Neutron Flux data file in CSV into a legible dictionary for the graph video algorithm
     def neutron_csv_to_dict(self, begin_date_time : datetime, end_date_time : datetime) -> dict:
         
         # Creating a dictionary that will store the neutron flux data
