@@ -1,8 +1,10 @@
 import csv
 import datetime as dt
+import json
 import os
 
 from datetime import datetime
+
 
 class ParticleFluxGraphImages():
 
@@ -14,48 +16,105 @@ class ParticleFluxGraphImages():
         self.beginDateTime = beginDateTime
         self.endDateTime = endDateTime
         self.dctEnergy = dctEnergy
-
-        # # Extracting the data from beginDateTime
-        # start_year = self.beginDateTime.year
-        # start_month = self.beginDateTime.month
-        # start_day = self.beginDateTime.day
-        # start_hour = self.beginDateTime.hour
-        # start_min = self.beginDateTime.minute
         
-        # # Extracting the data from endDateTime
-        # end_year = self.endDateTime.year
-        # end_month = self.endDateTime.month
-        # end_day = self.endDateTime.day
-        # end_hour = self.endDateTime.hour
-        # end_min = self.endDateTime.minute
-        
-        # Getting Proton flux data if selected
+        # Getting Proton flux data dictionary if selected
         if dctEnergy["ProtonFlux"]:
-            proton_flux_dictionary = self.proton_json_to_dict(self.beginDateTime, self.endDateTime, self.dctEnergy)
+            proton_flux_dictionary = self.proton_json_to_dict(self.beginDateTime, self.endDateTime, self.dctEnergy["Energies"])
 
-        # Getting Neutron flux data if selected
+        # Getting Neutron flux data dictionary if selected
         if dctEnergy["NeutronFlux"]:
             neutron_flux_dictionary = self.neutron_csv_to_dict(self.beginDateTime, self.endDateTime)
+
+
     ## --------------------------------------------------------------------------------------------------------------------- ##
     
 
 
     ## FUNCTIONS ----------------------------------------------------------------------------------------------------------- ##
+
     # Function to convert GOES Proton Flux data file in JSON into a legible dictionary for the graph video algorithm
+    # Dictionary format : {datetime1 : {">= 1 MeV" : flux, ">= 10 MeV" : flux, ...}, datetime2 : {">= 1 MeV" : flux, ">= 10 MeV" : flux, ...}, ...}
     def proton_json_to_dict(self, begin_date_time : datetime, end_date_time : datetime, energy_dict : dict) -> dict:
-        pass
-    
+        
+        # Creating a dictionary that will store the proton flux data
+        final_dict = dict()
+
+        ### -------------------- /!\ TO CHANGE WHEN DEPLOYING THE APP /!\ -------------------- ###
+        # Setting working directory to input
+        os.chdir('input')
+        ### ---------------------------------------------------------------------------------- ###
+
+        ## ----- Checking every data file day per day ----- ##
+
+        current_date_time = begin_date_time # Initializing current datetime
+        while current_date_time <= end_date_time:
+            
+            # Importing year, month and day from current_date_time
+            year = current_date_time.strftime('%Y')
+            month = current_date_time.strftime('%m')
+            day = current_date_time.strftime('%d')
+        
+
+            # Opening file
+            json_file = open(f"{year}{month}{day}_integral-protons-1-day.json")
+
+            # Loading data as a dictionary
+            json_data = json.load(json_file)
+
+            # Checking every measure in the json file
+            for measure in json_data:
+                
+                # Getting measure["time_tag"] property into a Python datetime format
+                current_measure_datetime = datetime.strptime(measure["time_tag"], '%Y-%m-%dT%H:%M:%SZ')
+
+                # We add this measure to the final dictionary if only the current_measure_datetime
+                # is between begin_date_time and end_date_time
+                if current_measure_datetime >= begin_date_time and current_measure_datetime <= end_date_time:
+                    
+                    # Adding current_measure_datetime key if it isn't set yet
+                    if current_measure_datetime not in final_dict.keys():
+                        final_dict[current_measure_datetime] = dict()
+
+                    # Getting current measure's energy
+                    # corresponding to the measure's flux
+                    current_energy = measure["energy"]
+
+                    # We add this measure if only the current energy was
+                    # selected on the user's request
+                    if energy_dict[current_energy] == True:
+
+                        # Getting current measure's flux
+                        current_flux = measure["flux"]
+
+                        # Adding this measure to the final dictionary
+                        final_dict[current_measure_datetime][current_energy] = current_flux
+                    
+
+            # Incrementing current_date_time by one day
+            current_date_time += dt.timedelta(days=1)
+        
+        ## ------------------------------------------------ ##
+
+        ### -------------------- /!\ TO CHANGE WHEN DEPLOYING THE APP /!\ -------------------- ###
+        # Resetting working directory to the parent folder
+        os.chdir('../')
+        ### ---------------------------------------------------------------------------------- ###
+
+        return final_dict
+
+
+
     # Function to convert NEST Neutron Flux data file in CSV into a legible dictionary for the graph video algorithm
+    # Dictionary format : {"start_date_time" : [list of datetimes], "Measure" : [List of measures]}
+    # Multiple stations version : {"start_date_time" : [list of datetimes], "KERG Measure" : [List of measures], "TERA Measure" : [List of measures]}
     def neutron_csv_to_dict(self, begin_date_time : datetime, end_date_time : datetime) -> dict:
         
         # Creating a dictionary that will store the neutron flux data
         final_dict = dict()
         
         ### -------------------- /!\ TO CHANGE WHEN DEPLOYING THE APP /!\ -------------------- ###
-        
         # Setting working directory to input
         os.chdir('input')
-        
         ### ---------------------------------------------------------------------------------- ###
 
 
@@ -117,24 +176,28 @@ class ParticleFluxGraphImages():
 
                 # For every line of the CSV file 
                 for current_line in csv_content:
-
+                    
                     # Converting datetimes into Python datetime format
                     reconverted_datetime = datetime.strptime(current_line["start_date_time"], '%Y-%m-%d %H:%M:%S')
                     current_line["start_date_time"] = reconverted_datetime
 
-                    # For every key in the current line dictionary
-                    for current_key in current_line.keys():
+                    # We allow the current line to be added only if the start_date_time
+                    # is between begin_date_time and end_date_time
+                    if current_line["start_date_time"] >= begin_date_time and current_line["start_date_time"] <= end_date_time:
 
-                        # Setting final_dict's keys
-                        # if they are not already set
-                        if not current_key in final_dict.keys():
-                            final_dict[current_key] = []
+                        # For every key in the current line dictionary
+                        for current_key in current_line.keys():
 
-                        # Converting neutron flux data in float (if current_key contains "Neutron Flux")
-                        if "Neutron flux" in current_key:
-                            final_dict[current_key].append(float(current_line[current_key]))
-                        else:
-                            final_dict[current_key].append(current_line[current_key])
+                            # Setting final_dict's tabs on its values
+                            # if they are not already set
+                            if not current_key in final_dict.keys():
+                                final_dict[current_key] = []
+
+                            # Converting neutron flux data in float (if current_key contains "Neutron Flux")
+                            if "Neutron flux" in current_key:
+                                final_dict[current_key].append(float(current_line[current_key]))
+                            else:
+                                final_dict[current_key].append(current_line[current_key])
 
             ## ------------------------------------------- ##
 
@@ -142,9 +205,13 @@ class ParticleFluxGraphImages():
             current_date_time += dt.timedelta(days=1)
         ## ------------------------------------------------ ##
 
-        # For debug
-        print(final_dict)
+        ### -------------------- /!\ TO CHANGE WHEN DEPLOYING THE APP /!\ -------------------- ###
+        # Resetting working directory to the parent folder
+        os.chdir('../')
+        ### ---------------------------------------------------------------------------------- ###
+
         return final_dict
+        
     ## --------------------------------------------------------------------------------------------------------------------- ##
 
 
@@ -153,9 +220,9 @@ class ParticleFluxGraphImages():
 ## ---------- TEST ZONE ---------- ##
 
 # Defining parameters for the ParticleFluxGraphImages test instance
-begin_date_time = datetime(2024, 6, 17, 0, 0)
-end_date_time = datetime(2024, 6, 18, 23, 59)
-dct_energy = {"NeutronFlux" : True}
+begin_date_time = datetime(2024, 6, 17, 5, 0)
+end_date_time = datetime(2024, 6, 18, 17, 00)
+dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : True, ">=50 MeV" : True, ">=100 MeV" : True,">=500 MeV" : True, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
 
 # Building a test object
 ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, image_width=1280, image_height=720)
