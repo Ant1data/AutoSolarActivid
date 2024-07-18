@@ -16,6 +16,10 @@ class ParticleFluxGraphImages():
         self.beginDateTime = beginDateTime
         self.endDateTime = endDateTime
         self.dctEnergy = dctEnergy
+
+        # Defining dictionaries for particle flux
+        proton_flux_dictionary = None
+        neutron_flux_dictionary = None
         
         # Getting Proton flux data dictionary if selected
         if dctEnergy["ProtonFlux"]:
@@ -25,7 +29,7 @@ class ParticleFluxGraphImages():
         if dctEnergy["NeutronFlux"]:
             neutron_flux_dictionary = self.neutron_csv_to_dict(self.beginDateTime, self.endDateTime)
 
-
+        self.dict_to_graph(proton_flux_dict=proton_flux_dictionary, neutron_flux_dict=neutron_flux_dictionary, image_width=1280, image_height=720)
     ## --------------------------------------------------------------------------------------------------------------------- ##
     
 
@@ -33,7 +37,7 @@ class ParticleFluxGraphImages():
     ## FUNCTIONS ----------------------------------------------------------------------------------------------------------- ##
 
     # Function to convert GOES Proton Flux data file in JSON into a legible dictionary for the graph video algorithm
-    # Dictionary format : {datetime1 : {">= 1 MeV" : flux, ">= 10 MeV" : flux, ...}, datetime2 : {">= 1 MeV" : flux, ">= 10 MeV" : flux, ...}, ...}
+    # Dictionary format : {">=1 MeV" : {timestamp1 : flux, timestamp2 : flux, ...}, ">=10 MeV" : {timestamp1 : flux, timestamp2 : flux, ...}, ...}
     def proton_json_to_dict(self, begin_date_time : datetime, end_date_time : datetime, energy_dict : dict) -> dict:
         
         # Creating a dictionary that will store the proton flux data
@@ -63,31 +67,31 @@ class ParticleFluxGraphImages():
 
             # Checking every measure in the json file
             for measure in json_data:
-                
-                # Getting measure["time_tag"] property into a Python datetime format
-                current_measure_datetime = datetime.strptime(measure["time_tag"], '%Y-%m-%dT%H:%M:%SZ')
 
-                # We add this measure to the final dictionary if only the current_measure_datetime
-                # is between begin_date_time and end_date_time
-                if current_measure_datetime >= begin_date_time and current_measure_datetime <= end_date_time:
+                # Getting current measure's energy
+                # corresponding to the measure's flux
+                current_energy = measure["energy"]
+
+                # We add this measure if only the current energy was
+                # selected on the user's request
+                if energy_dict[current_energy] == True:
                     
-                    # Adding current_measure_datetime key if it isn't set yet
-                    if current_measure_datetime not in final_dict.keys():
-                        final_dict[current_measure_datetime] = dict()
+                    # Adding current_energy key if it isn't set yet
+                    if current_energy not in final_dict.keys():
+                        final_dict[current_energy] = dict()
 
-                    # Getting current measure's energy
-                    # corresponding to the measure's flux
-                    current_energy = measure["energy"]
+                    # Getting measure["time_tag"] property into a Python datetime format
+                    current_measure_datetime = datetime.strptime(measure["time_tag"], '%Y-%m-%dT%H:%M:%SZ')
 
-                    # We add this measure if only the current energy was
-                    # selected on the user's request
-                    if energy_dict[current_energy] == True:
+                    # We add this measure to the final dictionary if only the current_measure_datetime
+                    # is between begin_date_time and end_date_time
+                    if current_measure_datetime >= begin_date_time and current_measure_datetime <= end_date_time:
 
                         # Getting current measure's flux
                         current_flux = measure["flux"]
 
                         # Adding this measure to the final dictionary
-                        final_dict[current_measure_datetime][current_energy] = current_flux
+                        final_dict[current_energy][current_measure_datetime] = current_flux
                     
 
             # Incrementing current_date_time by one day
@@ -211,6 +215,40 @@ class ParticleFluxGraphImages():
         ### ---------------------------------------------------------------------------------- ###
 
         return final_dict
+    
+    
+
+    def dict_to_graph(self, proton_flux_dict = None, neutron_flux_dict = None, image_width = 640, image_height = 480) -> list:
+        
+        ### -------------------- /!\ TO CHANGE WHEN DEPLOYING THE APP /!\ -------------------- ###
+        # Setting working directory to output
+        os.chdir('output')
+        ### ---------------------------------------------------------------------------------- ###
+        
+        # Determining how many graphs can be drawn
+        number_of_graphs = 0
+
+        # Verifying which dictionaries are set
+        if proton_flux_dict is not None:
+            number_of_graphs += 1
+        if neutron_flux_dict is not None:
+            number_of_graphs += 1
+        
+        # Determining how many images can be produced
+        number_of_images = min(len(proton_flux_dict.keys()), len(neutron_flux_dict["start_date_time"]))
+
+        
+        ## --- Preparing data for graphs --- ##
+
+        # Proton flux
+        proton_start_datetimes = []
+
+        if proton_flux_dict is not None:
+            proton_start_datetimes = proton_flux_dict.keys()
+
+
+        
+
         
     ## --------------------------------------------------------------------------------------------------------------------- ##
 
