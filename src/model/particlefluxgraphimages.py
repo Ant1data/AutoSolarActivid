@@ -1,10 +1,16 @@
 import csv
+import cv2
 import datetime as dt
+import io
 import json
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import numpy as np
 import os
+import sys
 
 from datetime import datetime
-
+from PIL import Image
 
 class ParticleFluxGraphImages():
 
@@ -29,7 +35,8 @@ class ParticleFluxGraphImages():
         if dctEnergy["NeutronFlux"]:
             neutron_flux_dictionary = self.neutron_csv_to_dict(self.beginDateTime, self.endDateTime)
 
-        self.dict_to_graph(proton_flux_dict=proton_flux_dictionary, neutron_flux_dict=neutron_flux_dictionary, image_width=1280, image_height=720)
+        # Generating graph images and storing them into a BytesIO tab
+        self.images = self.dict_to_graph(proton_flux_dict=proton_flux_dictionary, neutron_flux_dict=neutron_flux_dictionary, image_width=image_width, image_height=image_height)
     ## --------------------------------------------------------------------------------------------------------------------- ##
     
 
@@ -38,7 +45,8 @@ class ParticleFluxGraphImages():
 
     # Function to convert GOES Proton Flux data file in JSON into a legible dictionary for the graph video algorithm
     # Dictionary format : {">=1 MeV" : {timestamp1 : flux, timestamp2 : flux, ...}, ">=10 MeV" : {timestamp1 : flux, timestamp2 : flux, ...}, ...}
-    def proton_json_to_dict(self, begin_date_time : datetime, end_date_time : datetime, energy_dict : dict) -> dict:
+    @staticmethod
+    def proton_json_to_dict(begin_date_time : datetime, end_date_time : datetime, energy_dict : dict) -> dict:
         
         # Creating a dictionary that will store the proton flux data
         final_dict = dict()
@@ -111,7 +119,8 @@ class ParticleFluxGraphImages():
     # Function to convert NEST Neutron Flux data file in CSV into a legible dictionary for the graph video algorithm
     # Dictionary format : {"start_date_time" : [list of datetimes], "Measure" : [List of measures]}
     # Multiple stations version : {"start_date_time" : [list of datetimes], "KERG Measure" : [List of measures], "TERA Measure" : [List of measures]}
-    def neutron_csv_to_dict(self, begin_date_time : datetime, end_date_time : datetime) -> dict:
+    @staticmethod
+    def neutron_csv_to_dict(begin_date_time : datetime, end_date_time : datetime) -> dict:
         
         # Creating a dictionary that will store the neutron flux data
         final_dict = dict()
@@ -217,13 +226,13 @@ class ParticleFluxGraphImages():
         return final_dict
     
     
+    # Function that produces images of an animated graph, depending on Proton flux and/or Neutron flux
+    # 
+    @staticmethod 
+    def dict_to_graph(proton_flux_dict = None, neutron_flux_dict = None, image_width = 640, image_height = 480) -> list:
 
-    def dict_to_graph(self, proton_flux_dict = None, neutron_flux_dict = None, image_width = 640, image_height = 480) -> list:
-        
-        ### -------------------- /!\ TO CHANGE WHEN DEPLOYING THE APP /!\ -------------------- ###
-        # Setting working directory to output
-        os.chdir('output')
-        ### ---------------------------------------------------------------------------------- ###
+        # Setting images list
+        images_list = []
         
         # Determining how many graphs can be drawn
         number_of_graphs = 0
@@ -238,21 +247,172 @@ class ParticleFluxGraphImages():
         number_of_images = min(len(proton_flux_dict.keys()), len(neutron_flux_dict["start_date_time"]))
 
         
-        ## --- Preparing data for graphs --- ##
+        ## ----- Setting graph boundaries ----- ##
 
         # Proton flux
         proton_start_datetimes = []
+        proton_min_time, proton_max_time = None, None
+        proton_min_data, proton_max_data = sys.float_info.max, sys.float_info.min
 
         if proton_flux_dict is not None:
-            proton_start_datetimes = proton_flux_dict.keys()
 
+            # The keys from the fisrt value's dictionary is enough to gather every datetimes
+            first_key = list(proton_flux_dict.keys())[0]
+            proton_start_datetimes = list(proton_flux_dict[first_key].keys())
 
+            # Setting min and max times
+            proton_min_time = min(proton_start_datetimes)
+            proton_max_time = max(proton_start_datetimes)
+            
+            # Getting the min and max of all flux,
+            # no matter the energy is
+            for one_key in proton_flux_dict.keys():
+
+                    # Setting minimum data
+                    if proton_min_data > min(list(proton_flux_dict[one_key].values())):
+                        proton_min_data = min(list(proton_flux_dict[one_key].values()))
+                    
+                    # Setting maximum data
+                    if proton_max_data < max(list(proton_flux_dict[one_key].values())):
+                        proton_max_data = max(list(proton_flux_dict[one_key].values()))
+
+        # Neutron flux
+        neutron_start_datetimes = []
+        neutron_min_time, neutron_max_time = None, None
+        neutron_min_data, neutron_max_data = sys.float_info.max, sys.float_info.min
+
+        if neutron_flux_dict is not None:
+            neutron_start_datetimes = neutron_flux_dict["start_date_time"]
+
+            # Setting min and max times
+            neutron_min_time = min(neutron_start_datetimes)
+            neutron_max_time = max(neutron_start_datetimes)
         
+            # Getting the min and max of all flux,
+            # no matter the measure station is
+            for one_key in neutron_flux_dict.keys():
+
+                # We ignore the "start_date_time" key,
+                # because it is not a measure station
+                if one_key != "start_date_time":
+
+                    # Setting minimum data
+                    if neutron_min_data > min(neutron_flux_dict[one_key]):
+                        neutron_min_data = min(neutron_flux_dict[one_key])
+                    
+                    # Setting maximum data
+                    if neutron_max_data < max(neutron_flux_dict[one_key]):
+                        neutron_max_data = max(neutron_flux_dict[one_key])
+
+        ## -------------------------------- ##
+
+        ## ----- Generating graph images ----- ##
+        # Every line_index corresponds to a frame of the graph animation
+        for line_index in range(number_of_images+1):
+
+            # --- Building figure algorithm --- #
+            
+            # Building Subplots
+            fig, axs = plt.subplots(nrows=number_of_graphs, layout='constrained', figsize=(image_width/100, image_height/100))
+
+            # Boolean to determine if the proton flux graph is made,
+            # for the case when there are two graphs to draw
+            is_proton_flux_treated = False
+
+            # Can work with 1 or 2 graphs
+            for graph_index in range(number_of_graphs):
+                
+                # Creating a subplot
+                ax = axs[graph_index]
+
+                # --- Proton Flux Graph, if it is not already treated --- #
+                if proton_flux_dict is not None and not is_proton_flux_treated:
+                    
+                    # Setting plot boundaries
+                    ax.set_xlim(proton_min_time - dt.timedelta(minutes=1) , proton_max_time + dt.timedelta(minutes=1)) # Time on X (We add/subtract one minute as a padding)
+                    ax.set_ylim(proton_min_data, proton_max_data) # Proton flux data on Y
+
+                    # Generating plot for every energy on proton_flux_dict
+                    for one_energy in proton_flux_dict.keys():
+                        
+                        # Setting plot limit depending on the line_index
+                        # and the number of images
+                        plot_limit = round((len(proton_flux_dict[one_energy])*line_index)/number_of_images)
+                        ax.plot(proton_start_datetimes[:plot_limit], list(proton_flux_dict[one_energy].values())[:plot_limit], label=one_energy)
+                        ax.legend() # Enabling legends
+
+                    # Setting plot title
+                    ax.set_title(f"Proton flux from {format_datetime(proton_min_time)} to {format_datetime(proton_max_time)}")
+                    
+                    # Setting plot axis labels
+                    ax.set_ylabel(r'Particles∙cm$^-2$∙s$^-1$∙sr$^-1$')
+
+                    # Indicating that the proton flux has been reated
+                    is_proton_flux_treated = True
+                # ------------------------------------------------------ #
+                # --- Neutron Flux Graph --- #
+                elif neutron_flux_dict is not None:
+                    
+                    # Setting plot boundaries
+                    ax.set_xlim(neutron_min_time - dt.timedelta(minutes=1) , neutron_max_time + dt.timedelta(minutes=1)) # Time on X (We add/subtract one minute as a padding)
+                    ax.set_ylim(neutron_min_data, neutron_max_data) # Neutron flux data on Y
+
+                    # Generating plot for every station in graph_dictionary
+                    for one_key in neutron_flux_dict.keys():
+
+                        # We skip "start_date_time"
+                        if one_key != "start_date_time":
+                        
+                            # Setting plot limit depending on the line_index
+                            # and the number of images
+                            plot_limit = round((len(neutron_flux_dict["start_date_time"])*line_index)/number_of_images)
+                            ax.plot(neutron_start_datetimes[:plot_limit], neutron_flux_dict[one_key][:plot_limit], label=one_key)
+                            ax.legend() # Enabling legends
+
+                    # Setting plot title
+                    ax.set_title(f"Neutron flux from {format_datetime(proton_min_time)} to {format_datetime(proton_max_time)}")
+                    
+                    # Setting plot axis labels
+                    ax.set_ylabel(r'Particles∙cm$^-2$∙s$^-1$∙sr$^-1$')
+                # -------------------------- #
+
+
+
+                # Setting times in correct format
+                ax.xaxis.set_major_locator(mdates.HourLocator(interval=2))
+                ax.xaxis.set_minor_locator(mdates.HourLocator())
+                ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
+        
+                # Enabling grid on the graph
+                ax.grid(True)
+
+                # Rotates and right-aligns the x labels so they don't crowd each other.
+                for label in ax.get_xticklabels(which='major'):
+                    label.set(rotation=30, horizontalalignment='right')
+
+            # Closing plot
+            plt.close()
+            # --------------------------------- #
+
+            # --- Saving images --- #
+            current_plot_byte = io.BytesIO()
+            fig.savefig(current_plot_byte, format='png') 
+            current_plot_byte.seek(0) # Setting "reading cursor" at the beginning
+
+            # We store this frame of the graph on the final images list
+            images_list.append(current_plot_byte)
+            # --------------------- #
+            
+        ## ----------------------------------- #
+        return images_list    
 
         
     ## --------------------------------------------------------------------------------------------------------------------- ##
 
-
+# Function to format the date into a legible format (Generated by ChatGPT)
+def format_datetime(dt : datetime):
+    suffix = 'th' if 11 <= dt.day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(dt.day % 10, 'th')
+    return dt.strftime(f"%B {dt.day}{suffix} %Y at %H:%M")
 
 
 ## ---------- TEST ZONE ---------- ##
@@ -263,4 +423,42 @@ end_date_time = datetime(2024, 6, 18, 17, 00)
 dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : True, ">=50 MeV" : True, ">=100 MeV" : True,">=500 MeV" : True, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
 
 # Building a test object
-ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, image_width=1280, image_height=720)
+test_object = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, image_width=1280, image_height=720)
+
+# For debug
+print("test_object created")
+
+# ----- Video generation algorithm ----- #
+
+print(os.getcwd())
+# Changing workoing directory to the output folder
+os.chdir('output')
+
+# Defining video name
+video_name = "solar_activid_test_all_flux.mp4"
+
+# Configuring video writer
+output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 25, (1280, 720))
+
+counter = 1
+for one_frame in test_object.images:
+
+    # Saving plot as a PIL image
+    current_plot_pil = Image.open(one_frame)
+    
+    # Converting PIL image to OpenCV format
+    current_plot_cv = np.array(current_plot_pil)
+    current_plot_cv = cv2.cvtColor(current_plot_cv, cv2.COLOR_RGB2BGR) # Configuring color
+
+    # Adding frame on the video
+    output_video.write(current_plot_cv)
+
+    # For debug
+    print(f'Image {counter} written')
+    counter += 1
+
+# Exporting video
+cv2.destroyAllWindows()
+output_video.release()
+
+# -------------------------------------- #
