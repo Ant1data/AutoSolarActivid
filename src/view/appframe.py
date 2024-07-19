@@ -124,10 +124,10 @@ class AppFrame(ctk.CTkScrollableFrame):
             # If Proton Flux is selected, we get the energy booleans and store them in a dictionary
             if user_request["EnergyData"]["ProtonFlux"] == True:
                 user_request["EnergyData"]["Energies"] = dict()
-                user_request["EnergyData"]["Energies"]["10Mev"] = self.frmEnergy.chb10MeVValue.get()
-                user_request["EnergyData"]["Energies"]["50Mev"] = self.frmEnergy.chb50MeVValue.get()
-                user_request["EnergyData"]["Energies"]["100Mev"] = self.frmEnergy.chb100MeVValue.get()
-                user_request["EnergyData"]["Energies"]["500Mev"] = self.frmEnergy.chb500MeVValue.get()
+                user_request["EnergyData"]["Energies"][">=10 MeV"] = self.frmEnergy.chb10MeVValue.get()
+                user_request["EnergyData"]["Energies"][">=50 MeV"] = self.frmEnergy.chb50MeVValue.get()
+                user_request["EnergyData"]["Energies"][">=100 MeV"] = self.frmEnergy.chb100MeVValue.get()
+                user_request["EnergyData"]["Energies"][">=500 MeV"] = self.frmEnergy.chb500MeVValue.get()
 
             # Neutron Flux
             user_request["EnergyData"]["NeutronFlux"] = self.frmEnergy.chbNeutronFluxValue.get()
