@@ -231,7 +231,7 @@ class ParticleFluxGraphImages():
     @staticmethod 
     def dict_to_graph(proton_flux_dict = None, neutron_flux_dict = None, image_width = 640, image_height = 480) -> list:
 
-        # Setting images list
+        # Building images list
         images_list = []
         
         # Determining how many graphs can be drawn
@@ -242,6 +242,9 @@ class ParticleFluxGraphImages():
             number_of_graphs += 1
         if neutron_flux_dict is not None:
             number_of_graphs += 1
+        
+        # For debug
+        print("Number of graphs :", number_of_graphs)
 
         
         ## ----- Setting graph boundaries ----- ##
@@ -336,7 +339,7 @@ class ParticleFluxGraphImages():
             # for the case when there are two graphs to draw
             is_proton_flux_treated = False
 
-            # Can work with 1 or 2 graphs
+            
             for graph_index in range(number_of_graphs):
                 
                 # Creating a subplot
@@ -437,7 +440,7 @@ def format_datetime(dt : datetime):
 # Defining parameters for the ParticleFluxGraphImages test instance
 begin_date_time = datetime(2024, 6, 17, 5, 0)
 end_date_time = datetime(2024, 6, 18, 17, 00)
-dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : True, ">=50 MeV" : True, ">=100 MeV" : True,">=500 MeV" : True, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
+dct_energy = {"ProtonFlux" : False, "Energies" : {">=10 MeV" : True, ">=50 MeV" : True, ">=100 MeV" : True,">=500 MeV" : True, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
 
 # Building a test object
 test_object = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, image_width=1280, image_height=720)
