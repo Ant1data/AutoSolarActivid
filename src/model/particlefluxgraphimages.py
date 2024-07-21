@@ -469,48 +469,80 @@ def format_datetime(dt : datetime):
 
 ## ---------- TEST ZONE ---------- ##
 
-# Defining parameters for the ParticleFluxGraphImages test instance
+# ----- Video generation algorithm ----- #
+def generate_video(frame_list, video_name):
+    # Changing workoing directory to the output folder
+    os.chdir('output')
+
+    # Configuring video writer
+    output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 25, (1280, 720))
+
+    counter = 1
+    for one_frame in frame_list:
+
+        # Saving plot as a PIL image
+        current_plot_pil = Image.open(one_frame)
+        
+        # Converting PIL image to OpenCV format
+        current_plot_cv = np.array(current_plot_pil)
+        current_plot_cv = cv2.cvtColor(current_plot_cv, cv2.COLOR_RGB2BGR) # Configuring color
+
+        # Adding frame on the video
+        output_video.write(current_plot_cv)
+
+        # For debug
+        print(f'Image {counter} written')
+        counter += 1
+
+    # Exporting video
+    cv2.destroyAllWindows()
+    output_video.release()
+    print("Video findable on", os.getcwd(), "//", video_name)
+    os.chdir('../')
+# -------------------------------------- #
+
+
+# --- Test 1 : Neutron Flux --- #
 begin_date_time = datetime(2024, 6, 17, 5, 0)
 end_date_time = datetime(2024, 6, 18, 17, 00)
 dct_energy = {"ProtonFlux" : False, "Energies" : {">=10 MeV" : True, ">=50 MeV" : True, ">=100 MeV" : True,">=500 MeV" : True, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
 
 # Building a test object
-test_object = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
+test_object_1 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
 
 # For debug
-print("test_object created")
+print("test_object 1 created")
 
-# ----- Video generation algorithm ----- #
+# Generating test 1 
+generate_video(test_object_1.images, "solar_activid_test_neutron_flux.mp4")
+# ----------------------------- #
 
-print(os.getcwd())
-# Changing workoing directory to the output folder
-os.chdir('output')
+# --- Test 2 : Proton Flux --- #
+begin_date_time = datetime(2024, 4, 20, 5, 0)
+end_date_time = datetime(2024, 5, 18, 0, 0)
+dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : True, ">=50 MeV" : True, ">=100 MeV" : True,">=500 MeV" : True, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : False}
 
-# Defining video name
-video_name = "solar_activid_test_all_flux.mp4"
+# Building a test object
+test_object_2 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
 
-# Configuring video writer
-output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 25, (1280, 720))
+# For debug
+print("test_object 2 created")
 
-counter = 1
-for one_frame in test_object.images:
+# Generating test 2 
+generate_video(test_object_2.images, "solar_activid_test_proton_flux.mp4")
+# ----------------------------- #
 
-    # Saving plot as a PIL image
-    current_plot_pil = Image.open(one_frame)
-    
-    # Converting PIL image to OpenCV format
-    current_plot_cv = np.array(current_plot_pil)
-    current_plot_cv = cv2.cvtColor(current_plot_cv, cv2.COLOR_RGB2BGR) # Configuring color
+# --- Test 3 : Proton and Neutron Flux --- #
+begin_date_time = datetime(2024, 5, 17, 5, 0)
+end_date_time = datetime(2024, 5, 18, 0, 0)
+dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : False, ">=50 MeV" : False, ">=100 MeV" : True,">=500 MeV" : False, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : False}
 
-    # Adding frame on the video
-    output_video.write(current_plot_cv)
+# Building a test object
+test_object_3 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
 
-    # For debug
-    print(f'Image {counter} written')
-    counter += 1
+# For debug
+print("test_object 3 created")
 
-# Exporting video
-cv2.destroyAllWindows()
-output_video.release()
-
-# -------------------------------------- #
+# Generating test 2 
+generate_video(test_object_3.images, "solar_activid_test_all_flux.mp4")
+# ----------------------------- #
