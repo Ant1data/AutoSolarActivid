@@ -242,9 +242,6 @@ class ParticleFluxGraphImages():
             number_of_graphs += 1
         if neutron_flux_dict is not None:
             number_of_graphs += 1
-        
-        # Determining how many images can be produced
-        number_of_images = min(len(proton_flux_dict.keys()), len(neutron_flux_dict["start_date_time"]))
 
         
         ## ----- Setting graph boundaries ----- ##
@@ -307,6 +304,26 @@ class ParticleFluxGraphImages():
         ## -------------------------------- ##
 
         ## ----- Generating graph images ----- ##
+        # Determining how many images can be produced,
+        # depending on the number of datetimes of each graph
+        number_of_images = 0
+
+        # Case when only the proton graph is selected
+        if len(proton_start_datetimes) != 0 and len(neutron_start_datetimes) == 0:
+            number_of_images = len(proton_start_datetimes)
+
+        # Case when only the neutron graph is selected
+        elif len(neutron_start_datetimes) != 0 and len(proton_start_datetimes) == 0:
+            number_of_images = len(neutron_start_datetimes)  
+
+        # Case when both are selected, 
+        # we pick the minimum number of datetimes
+        else:
+            number_of_images = min(len(proton_start_datetimes), len(neutron_start_datetimes))
+
+        # For debug
+        print("Number of images :", number_of_images)
+
         # Every line_index corresponds to a frame of the graph animation
         for line_index in range(number_of_images+1):
 
