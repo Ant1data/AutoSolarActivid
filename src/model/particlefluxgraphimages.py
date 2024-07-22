@@ -339,7 +339,7 @@ class ParticleFluxGraphImages():
                 generate_proton_subplot(ax, proton_flux_dict, proton_start_datetimes, proton_bounds, proton_plot_limit)
 
                 # Neutron Flux
-                ax = axs[0] # Importing second subplot
+                ax = axs[1] # Importing second subplot
                 generate_neutron_subplot(ax, neutron_flux_dict, neutron_start_datetimes, neutron_bounds, neutron_plot_limit)
 
                 # Closing plot
@@ -497,7 +497,7 @@ def generate_video(frame_list, video_name):
     # Exporting video
     cv2.destroyAllWindows()
     output_video.release()
-    print("Video findable on", os.getcwd(), "//", video_name)
+    print("Video findable on " + os.getcwd() + "/" + video_name)
     os.chdir('../')
 # -------------------------------------- #
 
@@ -515,6 +515,9 @@ print("test_object 1 created")
 
 # Generating test 1 
 generate_video(test_object_1.images, "solar_activid_test_neutron_flux.mp4")
+
+# Deleting test object
+del test_object_1
 # ----------------------------- #
 
 # --- Test 2 : Proton Flux --- #
@@ -530,12 +533,15 @@ print("test_object 2 created")
 
 # Generating test 2 
 generate_video(test_object_2.images, "solar_activid_test_proton_flux.mp4")
+
+# Deleting test object
+del test_object_2
 # ----------------------------- #
 
 # --- Test 3 : Proton and Neutron Flux --- #
 begin_date_time = datetime(2024, 5, 17, 5, 0)
 end_date_time = datetime(2024, 5, 18, 0, 0)
-dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : False, ">=50 MeV" : False, ">=100 MeV" : True,">=500 MeV" : False, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : False}
+dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : False, ">=50 MeV" : False, ">=100 MeV" : True,">=500 MeV" : False, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
 
 # Building a test object
 test_object_3 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
@@ -543,6 +549,9 @@ test_object_3 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTi
 # For debug
 print("test_object 3 created")
 
-# Generating test 2 
+# Generating test 3 
 generate_video(test_object_3.images, "solar_activid_test_all_flux.mp4")
+
+# Deleting test object
+del test_object_3
 # ----------------------------- #
