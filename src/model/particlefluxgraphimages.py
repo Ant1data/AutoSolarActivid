@@ -24,7 +24,7 @@ class ParticleFluxGraphImages():
         self.dctEnergy = dctEnergy
         self.imageWidth = imageWidth
         self.imageHeight = imageHeight
-        self.numberOfImages = None
+        self.numberOfImages = numberOfImages
 
         # Defining dictionaries for particle flux
         proton_flux_dictionary = None
@@ -471,7 +471,8 @@ def format_datetime(dt : datetime):
 
 # ----- Video generation algorithm ----- #
 def generate_video(frame_list, video_name):
-    # Changing workoing directory to the output folder
+
+    # Changing working directory to the output folder
     os.chdir('output')
 
     # Configuring video writer
@@ -502,41 +503,41 @@ def generate_video(frame_list, video_name):
 # -------------------------------------- #
 
 
-# --- Test 1 : Neutron Flux --- #
-begin_date_time = datetime(2024, 6, 17, 5, 0)
-end_date_time = datetime(2024, 6, 18, 17, 00)
-dct_energy = {"ProtonFlux" : False, "Energies" : {">=10 MeV" : True, ">=50 MeV" : True, ">=100 MeV" : True,">=500 MeV" : True, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
+# # --- Test 1 : Neutron Flux --- #
+# begin_date_time = datetime(2024, 6, 17, 5, 0)
+# end_date_time = datetime(2024, 6, 18, 17, 00)
+# dct_energy = {"ProtonFlux" : False, "Energies" : {">=10 MeV" : True, ">=50 MeV" : True, ">=100 MeV" : True,">=500 MeV" : True, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
 
-# Building a test object
-test_object_1 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
+# # Building a test object
+# test_object_1 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
 
-# For debug
-print("test_object 1 created")
+# # For debug
+# print("test_object 1 created")
 
-# Generating test 1 
-generate_video(test_object_1.images, "solar_activid_test_neutron_flux.mp4")
+# # Generating test 1 
+# generate_video(test_object_1.images, "solar_activid_test_neutron_flux.mp4")
 
-# Deleting test object
-del test_object_1
-# ----------------------------- #
+# # Deleting test object
+# del test_object_1
+# # ----------------------------- #
 
-# --- Test 2 : Proton Flux --- #
-begin_date_time = datetime(2024, 4, 20, 5, 0)
-end_date_time = datetime(2024, 5, 18, 0, 0)
-dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : True, ">=50 MeV" : True, ">=100 MeV" : True,">=500 MeV" : True, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : False}
+# # --- Test 2 : Proton Flux --- #
+# begin_date_time = datetime(2024, 4, 20, 5, 0)
+# end_date_time = datetime(2024, 5, 18, 0, 0)
+# dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : True, ">=50 MeV" : True, ">=100 MeV" : True,">=500 MeV" : True, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : False}
 
-# Building a test object
-test_object_2 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
+# # Building a test object
+# test_object_2 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
 
-# For debug
-print("test_object 2 created")
+# # For debug
+# print("test_object 2 created")
 
-# Generating test 2 
-generate_video(test_object_2.images, "solar_activid_test_proton_flux.mp4")
+# # Generating test 2 
+# generate_video(test_object_2.images, "solar_activid_test_proton_flux.mp4")
 
-# Deleting test object
-del test_object_2
-# ----------------------------- #
+# # Deleting test object
+# del test_object_2
+# # ----------------------------- #
 
 # --- Test 3 : Proton and Neutron Flux --- #
 begin_date_time = datetime(2024, 5, 17, 5, 0)
