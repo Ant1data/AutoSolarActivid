@@ -3,7 +3,9 @@ import io
 import numpy as np
 import operator
 import os
+import sys
 
+from common.exceptions import NoDataFoundError
 from datetime import datetime
 from PIL import Image
 
@@ -92,12 +94,17 @@ class SolarActivityImages():
                             image_filename.index(one_key, 14) # Raises a ValueError whenever the one_key substring hasn't been found
                             types_numbers[one_key] += 1
 
-                        # When the one_key is not found
+                        # When the one_key is not found, we ignore and continue
                         except ValueError:
                             continue
                     
                     # Adding the file name to the filenames list
                     self.images_filenames.append(image_filename)
+
+        # Case when no images has been found,
+        # We raise a NoDataFoundError exception
+        if len(self.images_filenames) == 0:
+            raise NoDataFoundError("No corresponding solar activity images has been found")
                     
         # Getting major resolution and type to select the images with the major resolution and type
         major_resolution = max(resolution_numbers.items(), key=operator.itemgetter(1))[0]
@@ -136,6 +143,7 @@ class SolarActivityImages():
         
         # Changing working directory to the parent folder
         os.chdir('../')
+    ## --------------------------------------------------------------------------------------------------------------------- ##
 
 ## ---------- TEST ZONE ---------- ##
 
