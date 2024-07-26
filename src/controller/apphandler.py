@@ -1,13 +1,12 @@
 import customtkinter as ctk
 import tkinter as tk
 
-from controller.controllerdata import ControllerData
 from view.appframe import AppFrame
-from view.settingsframe import SettingsFrame
 
 class AppHandler():
 
     def __init__(self):
+
         # Appearance settings
         ctk.set_appearance_mode("System")  # Light/Dark mode
         ctk.set_default_color_theme("blue")  # Default color
@@ -19,8 +18,14 @@ class AppHandler():
         self.main_window.title("SolarActivid")
 
         # Creating the main AppFrame
-        self.frmApp = AppFrame(self.main_window, width=1200, height=1400, fg_color=("white", "gray5"))
+        self.frmApp = AppFrame(self.main_window, self, width=1200, height=1400, fg_color=("white", "gray5"))
         self.frmApp.pack()
 
         # Launching app
         self.main_window.mainloop()
+
+    # Function to treat the user's request, after 
+    def treatUserRequest(self, userRequest: dict[str, any]):
+        print("treatUserRequest Activated") 
+    
+

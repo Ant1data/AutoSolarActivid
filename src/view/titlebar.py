@@ -19,10 +19,3 @@ class TitleBar(ctk.CTkFrame):
         # Defining Title label
         self.lblTitle = ctk.CTkLabel(self, text="SolarActivid", font=ctk.CTkFont(size=20, weight="bold"))
         self.lblTitle.pack(pady=10, side="left", expand=True)
-        
-        # Defining settings icon for both light and dark modes
-        self.icnSettings = ctk.CTkImage(light_image=Image.open(os.path.join(IMG_FOLDER_PATH, "settings_light.png")), dark_image=Image.open(os.path.join(IMG_FOLDER_PATH, "settings_dark.png")))
-        
-        # Defining settings button 
-        self.btnSettings = ctk.CTkButton(self, text="Settings", image=self.icnSettings, compound="left", width=100)
-        self.btnSettings.pack(side="left", expand=False)

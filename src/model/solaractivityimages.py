@@ -172,8 +172,8 @@ def generate_video(frame_list, video_name):
     os.chdir('../')
 # -------------------------------------- #
 
-begin_date_time = datetime(2024, 6, 17, 5, 0)
-end_date_time = datetime(2024, 6, 18, 17, 00)
-test_object_1 = SolarActivityImages(beginDateTime=begin_date_time, endDateTime=end_date_time, imageWidth=1280, imageHeight=720)
+begin_date_time = datetime(2024, 7, 1, 5, 0)
+end_date_time = datetime(2024, 7, 3, 17, 00)
+test_object_1 = SolarActivityImages(beginDateTime=begin_date_time, endDateTime=end_date_time, imageWidth=1024, imageHeight=1024)
 
 generate_video(test_object_1.images, "solar_activid_test_solar_activity.mp4")

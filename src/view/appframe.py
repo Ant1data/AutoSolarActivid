@@ -5,7 +5,6 @@ import customtkinter as ctk
 from datetime import date, datetime
 from PIL import Image
 
-from controller.controllerdata import ControllerData
 from view.commentframe import CommentFrame
 from view.energyframe import EnergyFrame
 from view.titlebar import TitleBar
@@ -18,13 +17,15 @@ IMG_FOLDER_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(
 class AppFrame(ctk.CTkScrollableFrame):
 
     ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
-    def __init__(self, master, **kwargs):
+    def __init__(self, apphandler, master, **kwargs):
         super().__init__(master, **kwargs)
+
+        # Saving AppHandler handling this frame
+        self.apphandler = apphandler
 
         # --- Title Bar --- #
         self.frmTitleBar = TitleBar(self, corner_radius=0)
         self.frmTitleBar.pack(anchor="center", fill="x")
-
 
         # --- Video Type Frame --- #
         self.frmVideoType = VideoTypeFrame(self)
@@ -56,10 +57,6 @@ class AppFrame(ctk.CTkScrollableFrame):
         # ----- Generate Button ----- #
         self.btnGenerate = ctk.CTkButton(self, text="Generate", command=self.btnGenerateClicked)
         self.btnGenerate.pack(anchor="center", pady=10)
-
-        
-        # ----- Initializing dataController ----- #
-        self.dataController = ControllerData(self) # Giving itself as frmApp
 
     ## --------------------------------------------------------------------------------------------------------------------- ##
 
@@ -136,6 +133,6 @@ class AppFrame(ctk.CTkScrollableFrame):
         user_request["Comment"] = self.frmComment.tbxComment.get("0.0", "end")
 
         # Passing the user request to the data controller
-        self.dataController.btnGenerateClicked(user_request=user_request)
+        self.apphandler.treatUserRequest(user_request=user_request)
 
         
