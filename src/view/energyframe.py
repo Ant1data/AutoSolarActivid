@@ -22,21 +22,37 @@ class EnergyFrame(ctk.CTkFrame):
         self.chbProtonFlux.pack(anchor="w", padx=8)
 
         # Sub-Checkboxes for energy selection
+        self.chb1MeVValue = tk.BooleanVar()
+        self.chb1MeV = ctk.CTkCheckBox(self, text=">=1 MeV", variable=self.chb1MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+        self.chb1MeV.pack(anchor="w", padx=16)
+        
         self.chb10MeVValue = tk.BooleanVar()
-        self.chb10MeV = ctk.CTkCheckBox(self, text=">= 10 MeV", variable=self.chb10MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+        self.chb10MeV = ctk.CTkCheckBox(self, text=">=10 MeV", variable=self.chb10MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
         self.chb10MeV.pack(anchor="w", padx=16)
 
-        self.chb50MeVValue = tk.BooleanVar()
-        self.chb50MeV = ctk.CTkCheckBox(self, text=">= 50 MeV", variable=self.chb50MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
-        self.chb50MeV.pack(anchor="w", padx=16)
-
         self.chb100MeVValue = tk.BooleanVar()
-        self.chb100MeV = ctk.CTkCheckBox(self, text=">= 100 MeV", variable=self.chb100MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+        self.chb100MeV = ctk.CTkCheckBox(self, text=">=100 MeV", variable=self.chb100MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
         self.chb100MeV.pack(anchor="w", padx=16)
 
+        self.chb30MeVValue = tk.BooleanVar()
+        self.chb30MeV = ctk.CTkCheckBox(self, text=">=30 MeV", variable=self.chb30MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+        self.chb30MeV.pack(anchor="w", padx=16)
+
+        self.chb5MeVValue = tk.BooleanVar()
+        self.chb5MeV = ctk.CTkCheckBox(self, text=">=5 MeV", variable=self.chb5MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+        self.chb5MeV.pack(anchor="w", padx=16)
+
+        self.chb50MeVValue = tk.BooleanVar()
+        self.chb50MeV = ctk.CTkCheckBox(self, text=">=50 MeV", variable=self.chb50MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+        self.chb50MeV.pack(anchor="w", padx=16)
+
         self.chb500MeVValue = tk.BooleanVar()
-        self.chb500MeV = ctk.CTkCheckBox(self, text=">= 500 MeV", variable=self.chb500MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+        self.chb500MeV = ctk.CTkCheckBox(self, text=">=500 MeV", variable=self.chb500MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
         self.chb500MeV.pack(anchor="w", padx=16)
+
+        self.chb60MeVValue = tk.BooleanVar()
+        self.chb60MeV = ctk.CTkCheckBox(self, text=">=60 MeV", variable=self.chb60MeVValue, border_width=1, checkbox_height=12, checkbox_width=12, corner_radius=0, state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+        self.chb60MeV.pack(anchor="w", padx=16)
 
         # Neutron Flux CheckBox
         self.chbNeutronFluxValue = tk.BooleanVar()
@@ -52,13 +68,22 @@ class EnergyFrame(ctk.CTkFrame):
     def switch_states_proton_subcheckboxes(self):
         # Enabled
         if self.chbProtonFlux.get() == 1:
+            self.chb1MeV.configure(state=tk.NORMAL, fg_color=ENABLED_FG_COLORS, border_color=ENABLED_BORDER_COLORS)
             self.chb10MeV.configure(state=tk.NORMAL, fg_color=ENABLED_FG_COLORS, border_color=ENABLED_BORDER_COLORS)
-            self.chb50MeV.configure(state=tk.NORMAL, fg_color=ENABLED_FG_COLORS, border_color=ENABLED_BORDER_COLORS)
             self.chb100MeV.configure(state=tk.NORMAL, fg_color=ENABLED_FG_COLORS, border_color=ENABLED_BORDER_COLORS)
+            self.chb30MeV.configure(state=tk.NORMAL, fg_color=ENABLED_FG_COLORS, border_color=ENABLED_BORDER_COLORS)
+            self.chb5MeV.configure(state=tk.NORMAL, fg_color=ENABLED_FG_COLORS, border_color=ENABLED_BORDER_COLORS)
+            self.chb50MeV.configure(state=tk.NORMAL, fg_color=ENABLED_FG_COLORS, border_color=ENABLED_BORDER_COLORS)
             self.chb500MeV.configure(state=tk.NORMAL, fg_color=ENABLED_FG_COLORS, border_color=ENABLED_BORDER_COLORS)
+            self.chb60MeV.configure(state=tk.NORMAL, fg_color=ENABLED_FG_COLORS, border_color=ENABLED_BORDER_COLORS)
+
         # Disabled
         else:
+            self.chb1MeV.configure(state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
             self.chb10MeV.configure(state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
-            self.chb50MeV.configure(state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
             self.chb100MeV.configure(state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+            self.chb30MeV.configure(state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+            self.chb5MeV.configure(state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+            self.chb50MeV.configure(state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
             self.chb500MeV.configure(state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+            self.chb60MeV.configure(state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
