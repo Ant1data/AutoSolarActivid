@@ -133,6 +133,6 @@ class AppFrame(ctk.CTkScrollableFrame):
         user_request["Comment"] = self.frmComment.tbxComment.get("0.0", "end")
 
         # Passing the user request to the data controller
-        self.apphandler.treatUserRequest(user_request=user_request)
+        self.apphandler.treatUserRequest(userRequest=user_request)
 
         
