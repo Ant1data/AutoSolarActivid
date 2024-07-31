@@ -1,9 +1,10 @@
 from .appframe import AppFrame
 from .commentframe import CommentFrame
 from .energyframe import EnergyFrame
+from .formatqualityframe import FormatQualityFrame
 from .timestampframe import TimestampFrame
 from .titlebar import TitleBar
 from .videotypebutton import VideoTypeButton
 from .videotypeframe import VideoTypeFrame
 
-__all__ = ['AppFrame', 'CommentFrame', 'EnergyFrame', 'TimestampFrame', 'TitleBar', 'VideoTypeButton', 'VideoTypeFrame']
+__all__ = ['AppFrame', 'CommentFrame', 'EnergyFrame', 'FormatQuality', 'TimestampFrame', 'TitleBar', 'VideoTypeButton', 'VideoTypeFrame']
