@@ -33,7 +33,6 @@ class AppFrame(ctk.CTkScrollableFrame):
         self.frmVideoType = VideoTypeFrame(self)
         self.frmVideoType.pack(anchor="center", fill="x", pady=10)
 
-
         # ----- ParticleFluxOptionsFrame ----- #
         self.frmParticleFluxOptions = ctk.CTkFrame(self, corner_radius=10, fg_color=("#c4d2ff","#272A33"))
 
@@ -49,13 +48,14 @@ class AppFrame(ctk.CTkScrollableFrame):
 
 
         # --- Timestamp Frame --- #
-        self.frmTimestamps = TimestampFrame(self.frmParticleFluxOptions)
-        self.frmTimestamps.pack(anchor="center", fill="x", padx=10, pady=10)
-
+        self.frmTimestamps = TimestampFrame(self)
+        self.frmTimestamps.pack(anchor="center", fill="x", pady=10)
+        
 
         # --- FormatQuality Frame --- #
         self.frmFormatQuality = FormatQualityFrame(self)
-        self.frmFormatQuality.pack(anchor="center", fill="x", padx=10, pady=10)
+        self.frmFormatQuality.pack(anchor="center", fill="x", pady=10)
+
 
         # --- Comment Frame --- #
         self.frmComment = CommentFrame(self)
@@ -76,7 +76,7 @@ class AppFrame(ctk.CTkScrollableFrame):
     def toggle_ParticleFluxOptionsFrame(self, button_is_selected):
         if button_is_selected:
             # We put back the frame on the interface, before the Comment Frame
-            self.frmParticleFluxOptions.pack(before=self.frmComment, anchor="center", fill="x")
+            self.frmParticleFluxOptions.pack(before=self.frmTimestamps, anchor="center", fill="x")
         
         else:
             # We remove the Frame from the interface, without destroying it

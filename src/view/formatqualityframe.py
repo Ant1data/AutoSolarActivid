@@ -16,20 +16,20 @@ class FormatQualityFrame(ctk.CTkFrame):
 
         # Format label
         self.lblFormat = ctk.CTkLabel(self, text="Format")
-        self.lblFormat.grid(row=1, column=0)
+        self.lblFormat.grid(row=1, column=0, sticky="e")
 
         # Format Segmented Button
         self.sgbFormatValue = ctk.StringVar(value="Instagram (vertical)")
-        self.sgbFormat = ctk.CTkSegmentedButton(self, values=["Instagram (vertical)", "YouTube (horizontal)"])
+        self.sgbFormat = ctk.CTkSegmentedButton(self, values=["Instagram (vertical)", "YouTube (horizontal)"], variable=self.sgbFormatValue)
         self.sgbFormat.grid(row=1, column=1, columnspan=2)
 
         # Quality label
         self.lblQuality = ctk.CTkLabel(self, text="Quality")
-        self.lblQuality.grid(row=2, column=0)
+        self.lblQuality.grid(row=2, column=0, sticky="e")
 
         # Quality Segmented Button
         self.sgbQualityValue = ctk.StringVar(value="Medium (720p)")
-        self.sgbQuality = ctk.CTkSegmentedButton(self, values=["Medium (720p)", "High (1080p)"])
+        self.sgbQuality = ctk.CTkSegmentedButton(self, values=["Medium (720p)", "High (1080p)"], variable=self.sgbQualityValue)
         self.sgbQuality.grid(row=2, column=1, columnspan=2)
 
         
