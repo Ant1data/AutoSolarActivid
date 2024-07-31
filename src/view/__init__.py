@@ -7,4 +7,4 @@ from .titlebar import TitleBar
 from .videotypebutton import VideoTypeButton
 from .videotypeframe import VideoTypeFrame
 
-__all__ = ['AppFrame', 'CommentFrame', 'EnergyFrame', 'FormatQuality', 'TimestampFrame', 'TitleBar', 'VideoTypeButton', 'VideoTypeFrame']
+__all__ = ['AppFrame', 'CommentFrame', 'EnergyFrame', 'FormatQualityFrame', 'TimestampFrame', 'TitleBar', 'VideoTypeButton', 'VideoTypeFrame']
