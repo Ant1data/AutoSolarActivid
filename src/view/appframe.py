@@ -7,6 +7,7 @@ from PIL import Image
 
 from view.commentframe import CommentFrame
 from view.energyframe import EnergyFrame
+from view.formatqualityframe import FormatQualityFrame
 from view.titlebar import TitleBar
 from view.timestampframe import TimestampFrame
 from view.videotypeframe import VideoTypeFrame
@@ -27,9 +28,11 @@ class AppFrame(ctk.CTkScrollableFrame):
         self.frmTitleBar = TitleBar(self, corner_radius=0)
         self.frmTitleBar.pack(anchor="center", fill="x")
 
+
         # --- Video Type Frame --- #
         self.frmVideoType = VideoTypeFrame(self)
         self.frmVideoType.pack(anchor="center", fill="x", pady=10)
+
 
         # ----- ParticleFluxOptionsFrame ----- #
         self.frmParticleFluxOptions = ctk.CTkFrame(self, corner_radius=10, fg_color=("#c4d2ff","#272A33"))
@@ -38,16 +41,21 @@ class AppFrame(ctk.CTkScrollableFrame):
         self.lblParticleFluxOptions = ctk.CTkLabel(self.frmParticleFluxOptions, text="Particle Flux Options", text_color="#3A7EBF", font=ctk.CTkFont(size=16, weight="bold"))
         self.lblParticleFluxOptions.pack(anchor="center", fill="x")
 
-        ## Frames inside ParticleFluxOptionsFrame ------------------------ ##
-        # Timestamps Frame
-        self.frmTimestamps = TimestampFrame(self.frmParticleFluxOptions)
-        self.frmTimestamps.pack(anchor="center", fill="x", padx=10, pady=10)
-
-
+        ## Frame inside ParticleFluxOptionsFrame ------------------------ ##
         # Energy Frame
         self.frmEnergy = EnergyFrame(self.frmParticleFluxOptions)
         self.frmEnergy.pack(anchor="center", fill="x", padx=10, pady=10)
         ## ---------------------------------------------------------------- ##
+
+
+        # --- Timestamp Frame --- #
+        self.frmTimestamps = TimestampFrame(self.frmParticleFluxOptions)
+        self.frmTimestamps.pack(anchor="center", fill="x", padx=10, pady=10)
+
+
+        # --- FormatQuality Frame --- #
+        self.frmFormatQuality = FormatQualityFrame(self)
+        self.frmFormatQuality.pack(anchor="center", fill="x", padx=10, pady=10)
 
         # --- Comment Frame --- #
         self.frmComment = CommentFrame(self)
@@ -85,51 +93,44 @@ class AppFrame(ctk.CTkScrollableFrame):
         # Getting selected video type buttons
         user_request.update(self.frmVideoType.dctSelection)
 
-        # Getting Particle Flux Graph options if this type is selected
-        if user_request["btnParticleFluxGraph"] == True:
 
-            # ----- Timestamps data ----- #
+        # ----- Timestamps data ----- #
+        # --- Begin --- #
+        # Begin date
+        begin_date = self.frmTimestamps.cldrBegin.selection_get()
 
-            # Begin date
-            user_request["BeginDate"] = self.frmTimestamps.cldrBegin.selection_get()
+        # Begin time 
+        hour = self.frmTimestamps.spbBeginHour.get()
+        minute = self.frmTimestamps.spbBeginMinute.get()
+        second = self.frmTimestamps.spbBeginSecond.get()
+        time = f'{hour}:{minute}:{second}' # Gathering values into a string
+        begin_time = datetime.strptime(time, "%H:%M:%S").time() # Converting time string into datetime format
 
-            # Begin time 
-            hour = self.frmTimestamps.spbBeginHour.get()
-            minute = self.frmTimestamps.spbBeginMinute.get()
-            second = self.frmTimestamps.spbBeginSecond.get()
-            time = f'{hour}:{minute}:{second}' # Gathering values into a string
-            user_request["BeginTime"] = datetime.strptime(time, "%H:%M:%S") # Converting time string into datetime format
-            
-            # End date
-            user_request["EndDate"] = self.frmTimestamps.cldrEnd.selection_get()
-
-            # End time 
-            hour = self.frmTimestamps.spbEndHour.get()
-            minute = self.frmTimestamps.spbEndMinute.get()
-            second = self.frmTimestamps.spbEndSecond.get()
-            time = f'{hour}:{minute}:{second}' # Gathering values into a string
-            user_request["EndTime"] = datetime.strptime(time, "%H:%M:%S") # Converting time string into datetime format
-
-            # ----- Energy data ----- #
-
-            # Building an inner dictionary for energy data
-            user_request["EnergyData"] = dict()
-
-            # Proton Flux
-            user_request["EnergyData"]["ProtonFlux"] = self.frmEnergy.chbProtonFluxValue.get()
-
-            # If Proton Flux is selected, we get the energy booleans and store them in a dictionary
-            if user_request["EnergyData"]["ProtonFlux"] == True:
-                user_request["EnergyData"]["Energies"] = dict()
-                user_request["EnergyData"]["Energies"][">=10 MeV"] = self.frmEnergy.chb10MeVValue.get()
-                user_request["EnergyData"]["Energies"][">=50 MeV"] = self.frmEnergy.chb50MeVValue.get()
-                user_request["EnergyData"]["Energies"][">=100 MeV"] = self.frmEnergy.chb100MeVValue.get()
-                user_request["EnergyData"]["Energies"][">=500 MeV"] = self.frmEnergy.chb500MeVValue.get()
-
-            # Neutron Flux
-            user_request["EnergyData"]["NeutronFlux"] = self.frmEnergy.chbNeutronFluxValue.get()
+        # Combining date and time
+        user_request["BeginDatetime"] = datetime.combine(begin_date, begin_time)
         
-        # Getting comment
+        # --- End --- #
+        # End date
+        end_date = self.frmTimestamps.cldrEnd.selection_get()
+
+        # End time 
+        hour = self.frmTimestamps.spbEndHour.get()
+        minute = self.frmTimestamps.spbEndMinute.get()
+        second = self.frmTimestamps.spbEndSecond.get()
+        time = f'{hour}:{minute}:{second}' # Gathering values into a string
+        end_time = datetime.strptime(time, "%H:%M:%S").time() # Converting time string into datetime format
+
+        # Combining date and time
+        user_request["EndDatetime"] = datetime.combine(end_date, end_time)
+
+        # ----- Energy data ----- #
+        # Getting energy options if ParticleFluxGraph are selected
+        if user_request["btnParticleFluxGraph"] == True:
+            
+            # Getting the user's choice in an inner dictionary
+            user_request["EnergyData"] = self.frmEnergy.get_user_choice()
+        
+        # ----- Comment ----- #
         user_request["Comment"] = self.frmComment.tbxComment.get("0.0", "end")
 
         # Passing the user request to the data controller

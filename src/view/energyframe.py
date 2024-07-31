@@ -87,3 +87,32 @@ class EnergyFrame(ctk.CTkFrame):
             self.chb50MeV.configure(state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
             self.chb500MeV.configure(state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
             self.chb60MeV.configure(state=tk.DISABLED, fg_color=DISABLED_COLORS, border_color=DISABLED_COLORS)
+
+
+    ## This function, triggered by the Generate button, builds a dictionary
+    ## specifying the value of each checkbox of the frame
+    def get_user_choice(self) -> dict:
+
+        # Building a final dictionary for energy data to send
+        user_choice = dict()
+
+        # Proton Flux and energies
+        user_choice["ProtonFlux"] = self.chbProtonFluxValue.get()
+
+        # If Proton Flux is selected, we get the energy booleans and store them in a dictionary
+        if user_choice["ProtonFlux"] == True:
+            user_choice["Energies"] = dict()
+            user_choice["Energies"][self.chb1MeV.cget("text")] = self.chb1MeVValue.get()
+            user_choice["Energies"][self.chb10MeV.cget("text")] = self.chb10MeVValue.get()
+            user_choice["Energies"][self.chb100MeV.cget("text")] = self.chb100MeVValue.get()
+            user_choice["Energies"][self.chb30MeV.cget("text")] = self.chb30MeVValue.get()
+            user_choice["Energies"][self.chb5MeV.cget("text")] = self.chb5MeVValue.get()
+            user_choice["Energies"][self.chb50MeV.cget("text")] = self.chb50MeVValue.get()
+            user_choice["Energies"][self.chb500MeV.cget("text")] = self.chb500MeVValue.get()
+            user_choice["Energies"][self.chb60MeV.cget("text")] = self.chb60MeVValue.get()
+
+        # Neutron Flux
+        user_choice["NeutronFlux"] = self.chbNeutronFluxValue.get()
+        
+        # Returning the dictionary
+        return user_choice
