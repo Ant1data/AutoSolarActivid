@@ -7,7 +7,7 @@ import sys
 
 # from common.exceptions import NoDataFoundError
 from datetime import datetime
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 ## CONSTANTS --------------------------------------------------------------------------------------------------------- ##
 
@@ -132,10 +132,16 @@ class SolarActivityImages():
             # Opening the image
             current_image = Image.open(one_image, mode='r')
 
+            # Adding credits to the images
+            draw = ImageDraw.Draw(current_image)
+            arial_font = ImageFont.truetype('Arial.ttf', 32)
+            draw.text((20, 20), "© Solar and Heliospheric Observatory", font=arial_font)
+
             # Changing image size
             current_image_resized = current_image.resize((imageWidth, imageHeight))
             
-            # Creating a purre binary variable to store the image
+            
+            # Creating a pure binary variable to store the image
             current_image_byte = io.BytesIO()
 
             # Saving the image in a pure binary format
@@ -183,8 +189,8 @@ def generate_video(frame_list, video_name):
     os.chdir('../')
 # -------------------------------------- #
 
-begin_date_time = datetime(2024, 6, 7, 5, 0)
-end_date_time = datetime(2024, 6, 8, 17, 00)
+begin_date_time = datetime(2024, 6, 17, 5, 0)
+end_date_time = datetime(2024, 6, 18, 17, 00)
 test_object_1 = SolarActivityImages(beginDateTime=begin_date_time, endDateTime=end_date_time, imageWidth=1280, imageHeight=720)
 
 generate_video(test_object_1.images, "solar_activid_test_solar_activity.mp4")

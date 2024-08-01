@@ -9,7 +9,7 @@ import numpy as np
 import os
 import sys
 
-from common.exceptions import NoDataFoundError
+# from common.exceptions import NoDataFoundError
 from datetime import datetime
 from PIL import Image
 
@@ -343,6 +343,9 @@ class ParticleFluxGraphImages():
                 ax = axs[1] # Importing second subplot
                 generate_neutron_subplot(ax, neutron_flux_dict, neutron_start_datetimes, neutron_bounds, neutron_plot_limit)
 
+                # Adding credits
+                fig.suptitle('© NOAA Space Weather Prediction Center, NMDB', ha = 'left', fontsize=12)
+                
                 # Closing plot
                 plt.close()
 
@@ -361,24 +364,31 @@ class ParticleFluxGraphImages():
                 # Building subplot
                 fig, ax = plt.subplots(figsize=(image_width/100, image_height/100))
 
+                # Setting credits text
+                credit_text = ""
+
                 # Proton flux
                 if proton_flux_dict is not None:
                     generate_proton_subplot(ax, proton_flux_dict, proton_start_datetimes, proton_bounds, proton_plot_limit)
+                    credit_text = "© NOAA Space Weather Prediction Center"
 
+                # Neutron flux
                 elif neutron_flux_dict is not None:
                     generate_neutron_subplot(ax, neutron_flux_dict, neutron_start_datetimes, neutron_bounds, neutron_plot_limit)
+                    credit_text = "© NMDB"
 
                 # Closing plot
                 plt.close()
 
                 # --- Saving images --- #
                 current_plot_byte = io.BytesIO()
-                fig.savefig(current_plot_byte, format='png') 
+                fig.savefig(current_plot_byte, format='png')
+
                 current_plot_byte.seek(0) # Setting "reading cursor" at the beginning
 
                 # We store this frame of the graph on the final images list
                 images_list.append(current_plot_byte)
-                # --------------------- #  
+                # ---------------------------------- #  
         ## ----------------------------------- #
         return images_list    
 
@@ -407,7 +417,7 @@ def generate_proton_subplot(ax, proton_flux_dict : dict, start_datetimes : list,
 
     # Setting plot title
     ax.set_title(f"Proton flux from {format_datetime(boundaries_dict["min_time"])} to {format_datetime(boundaries_dict["max_time"])}")
-    
+
     # Setting plot axis labels
     ax.set_ylabel(r'Particles∙cm$^-2$∙s$^-1$∙sr$^-1$')
 
@@ -540,23 +550,23 @@ def generate_video(frame_list, video_name):
 # del test_object_2
 # # ----------------------------- #
 
-# # --- Test 3 : Proton and Neutron Flux --- #
-# begin_date_time = datetime(2024, 5, 17, 5, 0)
-# end_date_time = datetime(2024, 5, 18, 0, 0)
-# dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : False, ">=50 MeV" : False, ">=100 MeV" : True,">=500 MeV" : False, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
+# --- Test 3 : Proton and Neutron Flux --- #
+begin_date_time = datetime(2024, 5, 17, 5, 0)
+end_date_time = datetime(2024, 5, 18, 0, 0)
+dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : False, ">=50 MeV" : False, ">=100 MeV" : True,">=500 MeV" : False, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
 
-# # Building a test object
-# test_object_3 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
+# Building a test object
+test_object_3 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
 
-# # For debug
-# print("test_object 3 created")
+# For debug
+print("test_object 3 created")
 
-# # Generating test 3 
-# generate_video(test_object_3.images, "solar_activid_test_all_flux.mp4")
+# Generating test 3 
+generate_video(test_object_3.images, "solar_activid_test_all_flux.mp4")
 
-# # Deleting test object
-# del test_object_3
-# # ----------------------------- #
+# Deleting test object
+del test_object_3
+# ----------------------------- #
 
 # --- Test 4 : Unreachable data --- #
 begin_date_time = datetime(2024, 5, 2, 5, 0)
