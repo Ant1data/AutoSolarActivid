@@ -20,7 +20,8 @@ class FolderPathsFrame(ctk.CTkFrame):
         self.lblInputPath = ctk.CTkLabel(self, text="Input folder path:")
         self.lblInputPath.grid(row=1, column=0, padx=10, pady=5, sticky="e")
 
-        self.entInputPath = ctk.CTkEntry(self, width=250)
+        self.entInputPathValue = ctk.StringVar()
+        self.entInputPath = ctk.CTkEntry(self, width=250, textvariable=self.entInputPathValue)
         self.entInputPath.grid(row=1, column=1, padx=10, pady=5)
 
         self.btnBrowseInput = ctk.CTkButton(self, text="Browse", command=self.browse_input_folder)
@@ -30,7 +31,8 @@ class FolderPathsFrame(ctk.CTkFrame):
         self.lblOutputPath = ctk.CTkLabel(self, text="Output folder path:")
         self.lblOutputPath.grid(row=2, column=0, padx=10, pady=5, sticky="e")
 
-        self.entOutputPath = ctk.CTkEntry(self, width=250)
+        self.entOutputPathValue = ctk.StringVar()
+        self.entOutputPath = ctk.CTkEntry(self, width=250, textvariable=self.entOutputPathValue)
         self.entOutputPath.grid(row=2, column=1, padx=10, pady=5)
 
         self.btnBrowseOutput = ctk.CTkButton(self, text="Browse", command=self.browse_output_folder)
