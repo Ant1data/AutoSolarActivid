@@ -13,7 +13,7 @@ class AppHandler():
         
         # Creating main window
         self.main_window = ctk.CTk()
-        self.main_window.geometry("800x800")
+        self.main_window.geometry("800x600")
         self.main_window.minsize(500, 375)
         self.main_window.title("SolarActivid")
 
@@ -26,6 +26,6 @@ class AppHandler():
 
     # Function to treat the user's request, after 
     def treatUserRequest(self, userRequest: dict[str, any]):
-        print("treatUserRequest Activated") 
+        print(userRequest)
     
 
