@@ -7,6 +7,7 @@ from PIL import Image
 
 from view.commentframe import CommentFrame
 from view.energyframe import EnergyFrame
+from view.folderpathsframe import FolderPathsFrame
 from view.formatqualityframe import FormatQualityFrame
 from view.titlebar import TitleBar
 from view.timestampframe import TimestampFrame
@@ -52,9 +53,18 @@ class AppFrame(ctk.CTkScrollableFrame):
         self.frmTimestamps.pack(anchor="center", fill="x", pady=10)
         
 
+        # Creating a frame to put frmFormatQuality and frmFolderPaths side to side
+        # --- FormatQualityFolder Frame --- #
+        self.frmFormatQualityFolder = ctk.CTkFrame(self, fg_color=("#FFFFFF", "#000000"))
+        self.frmFormatQualityFolder.pack(anchor="center", fill="x", pady=10)
+
         # --- FormatQuality Frame --- #
-        self.frmFormatQuality = FormatQualityFrame(self)
-        self.frmFormatQuality.pack(anchor="center", fill="x", pady=10)
+        self.frmFormatQuality = FormatQualityFrame(self.frmFormatQualityFolder)
+        self.frmFormatQuality.pack(side="left", fill='y')
+
+        # --- Folder Paths Frame
+        self.frmFolderPaths = FolderPathsFrame(self.frmFormatQualityFolder)
+        self.frmFolderPaths.pack(side="right", fill='y')
 
 
         # --- Comment Frame --- #
