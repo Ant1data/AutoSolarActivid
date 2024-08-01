@@ -133,6 +133,17 @@ class AppFrame(ctk.CTkScrollableFrame):
         # Combining date and time
         user_request["EndDatetime"] = datetime.combine(end_date, end_time)
 
+
+        # ----- Format & Quality ----- #
+        user_request["Format"] = self.frmFormatQuality.sgbFormatValue.get()
+        user_request["Quality"] = self.frmFormatQuality.sgbQualityValue.get()
+
+
+        # ----- Folder paths ----- #
+        user_request["InputFolder"] = self.frmFolderPaths.entInputPathValue.get()
+        user_request["OutputFolder"] = self.frmFolderPaths.entOutputPathValue.get()
+
+
         # ----- Energy data ----- #
         # Getting energy options if ParticleFluxGraph are selected
         if user_request["btnParticleFluxGraph"] == True:
