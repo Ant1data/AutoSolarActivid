@@ -5,7 +5,7 @@ import operator
 import os
 import sys
 
-from common.exceptions import NoDataFoundError
+# from common.exceptions import NoDataFoundError
 from datetime import datetime
 from PIL import Image
 
@@ -101,10 +101,10 @@ class SolarActivityImages():
                     # Adding the file name to the filenames list
                     self.images_filenames.append(image_filename)
 
-        # Case when no images has been found,
-        # We raise a NoDataFoundError exception
-        if len(self.images_filenames) == 0:
-            raise NoDataFoundError("No corresponding solar activity images has been found")
+        # # Case when no images has been found,
+        # # We raise a NoDataFoundError exception
+        # if len(self.images_filenames) == 0:
+        #     raise NoDataFoundError("No corresponding solar activity images has been found")
                     
         # Getting major resolution and type to select the images with the major resolution and type
         major_resolution = max(resolution_numbers.items(), key=operator.itemgetter(1))[0]
@@ -131,12 +131,15 @@ class SolarActivityImages():
             
             # Opening the image
             current_image = Image.open(one_image, mode='r')
+
+            # Changing image size
+            current_image_resized = current_image.resize((imageWidth, imageHeight))
             
             # Creating a purre binary variable to store the image
             current_image_byte = io.BytesIO()
 
             # Saving the image in a pure binary format
-            current_image.save(current_image_byte, format='png')
+            current_image_resized.save(current_image_byte, format='png')
 
             # Adding the image to the list
             self.images.append(current_image_byte)
@@ -154,7 +157,7 @@ def generate_video(frame_list, video_name):
     os.chdir('output')
 
     # Configuring video writer
-    output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 25, (1024, 1024))
+    output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 25, (1280, 720))
 
     counter = 1
     for one_frame in frame_list:
@@ -180,8 +183,8 @@ def generate_video(frame_list, video_name):
     os.chdir('../')
 # -------------------------------------- #
 
-begin_date_time = datetime(2024, 7, 1, 5, 0)
-end_date_time = datetime(2024, 7, 3, 17, 00)
-test_object_1 = SolarActivityImages(beginDateTime=begin_date_time, endDateTime=end_date_time, imageWidth=1024, imageHeight=1024)
+begin_date_time = datetime(2024, 6, 7, 5, 0)
+end_date_time = datetime(2024, 6, 8, 17, 00)
+test_object_1 = SolarActivityImages(beginDateTime=begin_date_time, endDateTime=end_date_time, imageWidth=1280, imageHeight=720)
 
 generate_video(test_object_1.images, "solar_activid_test_solar_activity.mp4")
