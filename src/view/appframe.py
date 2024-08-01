@@ -78,6 +78,7 @@ class AppFrame(ctk.CTkScrollableFrame):
 
     ## --------------------------------------------------------------------------------------------------------------------- ##
 
+
     ## METHODS ------------------------------------------------------------------------------------------------------------- ##
     
     ## This function, triggered by the Particle Flux Graph button,
@@ -91,6 +92,7 @@ class AppFrame(ctk.CTkScrollableFrame):
         else:
             # We remove the Frame from the interface, without destroying it
             self.frmParticleFluxOptions.pack_forget()
+
 
     ## This function, triggered by a click on btnGenerate, 
     ## makes a dictionary of what the user selected in the frame
@@ -156,5 +158,6 @@ class AppFrame(ctk.CTkScrollableFrame):
 
         # Passing the user request to the data controller
         self.apphandler.treatUserRequest(userRequest=user_request)
+    ## --------------------------------------------------------------------------------------------------------------------- ##
 
         
