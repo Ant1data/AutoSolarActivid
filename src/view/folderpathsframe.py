@@ -17,23 +17,23 @@ class FolderPathsFrame(ctk.CTkFrame):
         self.lblFolderPaths.grid(row=0, column=0, sticky="w", padx=8)
 
         # Input folder path
-        self.lblInputPath = ctk.CTkLabel(self.frmVideo, text="Input folder path:")
+        self.lblInputPath = ctk.CTkLabel(self, text="Input folder path:")
         self.lblInputPath.grid(row=1, column=0, padx=10, pady=5, sticky="e")
 
-        self.entInputPath = ctk.CTkEntry(self.frmVideo, width=250)
+        self.entInputPath = ctk.CTkEntry(self, width=250)
         self.entInputPath.grid(row=1, column=1, padx=10, pady=5)
 
-        self.btnBrowseInput = ctk.CTkButton(self.frmVideo, text="Browse", command=self.browse_input_folder)
+        self.btnBrowseInput = ctk.CTkButton(self, text="Browse", command=self.browse_input_folder)
         self.btnBrowseInput.grid(row=1, column=2, padx=10, pady=5)
 
         # Output folder path
-        self.lblOutputPath = ctk.CTkLabel(self.frmVideo, text="Output folder path:")
+        self.lblOutputPath = ctk.CTkLabel(self, text="Output folder path:")
         self.lblOutputPath.grid(row=2, column=0, padx=10, pady=5, sticky="e")
 
-        self.entOutputPath = ctk.CTkEntry(self.frmVideo, width=250)
+        self.entOutputPath = ctk.CTkEntry(self, width=250)
         self.entOutputPath.grid(row=2, column=1, padx=10, pady=5)
 
-        self.btnBrowseOutput = ctk.CTkButton(self.frmVideo, text="Browse", command=self.browse_output_folder)
+        self.btnBrowseOutput = ctk.CTkButton(self, text="Browse", command=self.browse_output_folder)
         self.btnBrowseOutput.grid(row=2, column=2, padx=10, pady=5)
 
     ## METHODS ------------------------------------------------------------------------------------------------------------- ##
