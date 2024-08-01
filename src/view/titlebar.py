@@ -13,9 +13,6 @@ class TitleBar(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
-        self.paddingFrame = ctk.CTkFrame(self, width=100, height=28, fg_color="transparent")
-        self.paddingFrame.pack(side="left", expand=False)
-
         # Defining Title label
         self.lblTitle = ctk.CTkLabel(self, text="SolarActivid", font=ctk.CTkFont(size=20, weight="bold"))
         self.lblTitle.pack(pady=10, side="left", expand=True)
