@@ -29,19 +29,23 @@ class SolarActivityImages():
 
     ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
     ## It that will directly pick the images
-    def __init__(self, beginDateTime : datetime, endDateTime : datetime, imageWidth : float, imageHeight : float):
+    def __init__(self, beginDateTime : datetime, endDateTime : datetime, imageWidth : float, imageHeight : float, inputFolder : str):
         
         # Defining attributes from parameters
         self.beginDateTime = beginDateTime
         self.endDateTime = endDateTime
         self.imageWidth = imageWidth
         self.imageHeight = imageHeight
+        self.inputFolder = inputFolder
 
         # Defining the list of images
         self.images = []
 
-        # Changing working directory to the input folder
-        os.chdir('input')
+        # Saving previous working directory
+        previous_working_directory = os.getcwd()
+        
+        # Setting working directory to input folder
+        os.chdir(self.inputFolder)
 
         # Defining the list to store the images file names
         self.images_filenames = []
@@ -150,8 +154,8 @@ class SolarActivityImages():
             # Adding the image to the list
             self.images.append(current_image_byte)
         
-        # Changing working directory to the parent folder
-        os.chdir('../')
+        # Resetting working directory to the previous one
+        os.chdir(previous_working_directory)
     ## --------------------------------------------------------------------------------------------------------------------- ##
 
 ## ---------- TEST ZONE ---------- ##
