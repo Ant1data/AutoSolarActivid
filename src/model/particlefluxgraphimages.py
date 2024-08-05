@@ -17,7 +17,7 @@ class ParticleFluxGraphImages():
 
     ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
     ## It that will directly build the graph images
-    def __init__(self, beginDateTime : datetime, endDateTime : datetime, dctEnergy : dict[str, bool], imageWidth : float, imageHeight : float, numberOfImages = None):
+    def __init__(self, beginDateTime : datetime, endDateTime : datetime, dctEnergy : dict[str, bool], imageWidth : float, imageHeight : float, inputFolder : str, numberOfImages = None):
         
         # Defining attributes from parameters
         self.beginDateTime = beginDateTime
@@ -25,6 +25,7 @@ class ParticleFluxGraphImages():
         self.dctEnergy = dctEnergy
         self.imageWidth = imageWidth
         self.imageHeight = imageHeight
+        self.inputFolder = inputFolder
         self.numberOfImages = numberOfImages
 
         # Defining dictionaries for particle flux
@@ -53,11 +54,13 @@ class ParticleFluxGraphImages():
         
         # Creating a dictionary that will store the proton flux data
         final_dict = dict()
+        
+        # Saving previous working directory
+        previous_working_directory = os.getcwd()
+        
+        # Setting working directory to input folder
+        os.chdir(self.inputFolder)
 
-        ### -------------------- /!\ TO CHANGE WHEN DEPLOYING THE APP /!\ -------------------- ###
-        # Setting working directory to input
-        os.chdir('input')
-        ### ---------------------------------------------------------------------------------- ###
 
         ## ----- Checking every data file day per day ----- ##
 
@@ -110,11 +113,9 @@ class ParticleFluxGraphImages():
         
         ## ------------------------------------------------ ##
 
-        ### -------------------- /!\ TO CHANGE WHEN DEPLOYING THE APP /!\ -------------------- ###
-        # Resetting working directory to the parent folder
-        os.chdir('../')
-        ### ---------------------------------------------------------------------------------- ###
-
+        # Resetting working directory to the previous one
+        os.chdir(previous_working_directory)
+        
         return final_dict
 
 
@@ -127,10 +128,11 @@ class ParticleFluxGraphImages():
         # Creating a dictionary that will store the neutron flux data
         final_dict = dict()
         
-        ### -------------------- /!\ TO CHANGE WHEN DEPLOYING THE APP /!\ -------------------- ###
-        # Setting working directory to input
-        os.chdir('input')
-        ### ---------------------------------------------------------------------------------- ###
+        # Saving previous working directory
+        previous_working_directory = os.getcwd()
+        
+        # Setting working directory to input folder
+        os.chdir(self.inputFolder)
 
 
         ## ----- Checking every data file day per day ----- ##
@@ -220,10 +222,8 @@ class ParticleFluxGraphImages():
             current_date_time += dt.timedelta(days=1)
         ## ------------------------------------------------ ##
 
-        ### -------------------- /!\ TO CHANGE WHEN DEPLOYING THE APP /!\ -------------------- ###
-        # Resetting working directory to the parent folder
-        os.chdir('../')
-        ### ---------------------------------------------------------------------------------- ###
+        # Resetting working directory to the previous one
+        os.chdir(previous_working_directory)
 
         return final_dict
     
