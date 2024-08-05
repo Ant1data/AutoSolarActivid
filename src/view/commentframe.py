@@ -19,12 +19,12 @@ class CommentFrame(ctk.CTkFrame):
         self.lblComment = ctk.CTkLabel(self, text=f"Comment ({MAX_CHARACTERS} characters maximum)")
         self.lblComment.grid(row=0, column=0, sticky="w", padx=8)
 
-        # Comment textbox
-        self.tbxComment = ctk.CTkTextbox(self, height=100)
-        self.tbxComment.grid(row=1, column=0, sticky="nsew", padx=8, pady=8)
+        # Comment entry
+        self.entComment = ctk.CTkEntry(self)
+        self.entComment.grid(row=1, column=0, sticky="nsew", padx=8, pady=8)
         
-        self.tbxComment.bind('<KeyPress>', self.char_count)
-        self.tbxComment.bind('<KeyRelease>', self.char_count)
+        self.entComment.bind('<KeyPress>', self.char_count)
+        self.entComment.bind('<KeyRelease>', self.char_count)
 
     ## --------------------------------------------------------------------------------------------------------------------- ##
 
@@ -37,10 +37,9 @@ class CommentFrame(ctk.CTkFrame):
     def char_count(self, event):
 
         # Getting the number of characters in the 
-        number_of_characters = len(self.tbxComment.get('1.0', 'end-1c'))
+        number_of_characters = len(self.entComment.get())
 
         # If a key, other than backspace or delete, has been pressed, 
         # and the maximum of characters has been exceeded
         if number_of_characters >= MAX_CHARACTERS and event.keysym not in {'BackSpace', 'Delete'}:
             return 'break' # It will prevent from typing the character
-        

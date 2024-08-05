@@ -154,7 +154,7 @@ class AppFrame(ctk.CTkScrollableFrame):
             user_request["EnergyData"] = self.frmEnergy.get_user_choice()
         
         # ----- Comment ----- #
-        user_request["Comment"] = self.frmComment.tbxComment.get("0.0", "end")
+        user_request["Comment"] = self.frmComment.entComment.get()
 
         # Passing the user request to the data controller
         self.apphandler.treatUserRequest(userRequest=user_request)
