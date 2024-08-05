@@ -6,6 +6,20 @@ import os
 from PIL import Image
 from view.appframe import AppFrame
 
+## CONSTANTS --------------------------------------------------------------------------------------------------------- ##
+
+# Screen resolutions for videos
+RESOLUTION_HORIZONTAL_MED = (1280, 720)
+RESOLUTION_VERTICAL_MED = (720, 1280)
+RESOLUTION_HORIZONTAL_HIGH = (1920, 1080)
+RESOLUTION_VERTICAL_HIGH = (1080, 1920)
+
+# Comment block height
+COMMENT_BLOCK_HEIGHT = 60
+
+## ------------------------------------------------------------------------------------------------------------------- ##
+
+
 class AppHandler():
 
     ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
@@ -31,11 +45,88 @@ class AppHandler():
 
     
     ## METHODS ------------------------------------------------------------------------------------------------------------- ##
-    # Function to treat the user's request, after 
+    # Function to treat the user's request,
+    # triggered by the "Generate" button
     def treatUserRequest(self, userRequest: dict[str, any]):
         
-        # Setting image format and 
-        pass
+        # ----- Video format and quality ----- #
+        video_width, video_height = 0, 0
+
+        # Vertical image
+        if userRequest["Format"] == "Instagram (vertical)":
+            
+            # Medium resolution
+            if userRequest["Quality"] == "Medium (720p)":
+                
+                video_width, video_height = RESOLUTION_VERTICAL_MED
+            
+            # High resolution
+            elif userRequest["Quality"] == "High (1080p)":
+                
+                video_width, video_height = RESOLUTION_VERTICAL_HIGH
+
+        # Horizontal image
+        elif userRequest["Format"] == "YouTube (horizontal)":
+            
+            # Medium resolution
+            if userRequest["Quality"] == "Medium (720p)":
+                
+                video_width, video_height = RESOLUTION_HORIZONTAL_MED
+            
+            # High resolution
+            elif userRequest["Quality"] == "High (1080p)":
+                
+                video_width, video_height = RESOLUTION_HORIZONTAL_HIGH
+
+        # ------------------------------------ #
+
+
+        # ----- Image types resolution ----- #
+
+        # Resolution for solar activity (video's by default)
+        solar_activity_width, solar_activity_height = video_width, video_height
+
+        # Resolution for particle graphs (video's by default)
+        particle_graph_width, particle_graph_height = video_width, video_height
+
+
+        # Case for both images selected
+        if userRequest["btnSolarActivityVideo"] and userRequest["btnParticleFluxGraph"]:
+            
+            # -------------- For vertical video -------------- #
+            if userRequest["Format"] == "Instagram (vertical)":
+
+                # Dividing image height by 2
+                solar_activity_height = solar_activity_height/2
+                particle_graph_height = particle_graph_height/2
+
+                # When a comment is written, it will be
+                # displayed on the middle, between the 
+                # solar activity and particle graph images
+                if userRequest["Comment"] != "\n":
+
+                    solar_activity_height -= COMMENT_BLOCK_HEIGHT/2
+                    particle_graph_height -= COMMENT_BLOCK_HEIGHT/2
+            
+            # -------------- For horizontal video -------------- #
+            elif userRequest["Format"] == "YouTube (horizontal)":
+
+                # Dividing image width by 2
+                solar_activity_width = solar_activity_width/2
+                particle_graph_width = particle_graph_width/2
+
+                # When a comment is written, it will be
+                # displayed on the middle, between the 
+                # solar activity and particle graph images
+                if userRequest["Comment"] != "\n":
+
+                    solar_activity_height -= COMMENT_BLOCK_HEIGHT/2
+                    particle_graph_height -= COMMENT_BLOCK_HEIGHT/2
+                    
+                    
+
+
+        
 
     
 
