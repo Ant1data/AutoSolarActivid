@@ -9,7 +9,7 @@ import numpy as np
 import os
 import sys
 
-# from common.exceptions import NoDataFoundError
+from common.exceptions import NoDataFoundError
 from datetime import datetime
 from PIL import Image
 
@@ -550,27 +550,27 @@ def generate_video(frame_list, video_name):
 # del test_object_2
 # # ----------------------------- #
 
-# --- Test 3 : Proton and Neutron Flux --- #
-begin_date_time = datetime(2024, 5, 17, 5, 0)
-end_date_time = datetime(2024, 5, 18, 0, 0)
-dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : False, ">=50 MeV" : False, ">=100 MeV" : True,">=500 MeV" : False, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
+# # --- Test 3 : Proton and Neutron Flux --- #
+# begin_date_time = datetime(2024, 5, 17, 5, 0)
+# end_date_time = datetime(2024, 5, 18, 0, 0)
+# dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : False, ">=50 MeV" : False, ">=100 MeV" : True,">=500 MeV" : False, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
 
-# Building a test object
-test_object_3 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
+# # Building a test object
+# test_object_3 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
 
-# For debug
-print("test_object 3 created")
+# # For debug
+# print("test_object 3 created")
 
-# Generating test 3 
-generate_video(test_object_3.images, "solar_activid_test_all_flux.mp4")
+# # Generating test 3 
+# generate_video(test_object_3.images, "solar_activid_test_all_flux.mp4")
 
-# Deleting test object
-del test_object_3
-# ----------------------------- #
+# # Deleting test object
+# del test_object_3
+# # ----------------------------- #
 
-# --- Test 4 : Unreachable data --- #
-begin_date_time = datetime(2024, 5, 2, 5, 0)
-end_date_time = datetime(2024, 5, 3, 0, 0)
-dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : False, ">=50 MeV" : False, ">=100 MeV" : True,">=500 MeV" : False, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
+# # --- Test 4 : Unreachable data --- #
+# begin_date_time = datetime(2024, 5, 2, 5, 0)
+# end_date_time = datetime(2024, 5, 3, 0, 0)
+# dct_energy = {"ProtonFlux" : True, "Energies" : {">=10 MeV" : False, ">=50 MeV" : False, ">=100 MeV" : True,">=500 MeV" : False, ">=1 MeV" : False, ">=30 MeV" : False, ">=5 MeV" : False, ">=60 MeV" : False, },"NeutronFlux" : True}
 
-test_object_4 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
+# test_object_4 = ParticleFluxGraphImages(beginDateTime=begin_date_time, endDateTime=end_date_time, dctEnergy=dct_energy, imageWidth=1280, imageHeight=720)
