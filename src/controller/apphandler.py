@@ -3,10 +3,15 @@ import cv2
 import numpy as np
 import os
 
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
+from model.particlefluxgraphimages import ParticleFluxGraphImages
+from model.solaractivityimages import SolarActivityImages
 from view.appframe import AppFrame
 
 ## CONSTANTS --------------------------------------------------------------------------------------------------------- ##
+# Screen formats
+HORIZONTAL = "h"
+VERTICAL = "v"
 
 # Screen resolutions for videos
 RESOLUTION_HORIZONTAL_MED = (1280, 720)
@@ -48,6 +53,9 @@ class AppHandler():
     # Function to treat the user's request,
     # triggered by the "Generate" button
     def treatUserRequest(self, userRequest: dict[str, any]):
+
+        # For debug 
+        print(userRequest)
         
         # ----- Video format and quality ----- #
         video_width, video_height = 0, 0
@@ -86,27 +94,19 @@ class AppHandler():
         # Resolution for solar activity (video's by default)
         solar_activity_width, solar_activity_height = video_width, video_height
 
-        # Resolution for particle graphs (video's by default)
+        # Resolution for particle flux graphs (video's by default)
         particle_graph_width, particle_graph_height = video_width, video_height
 
 
-        # Case for both images selected
+        # Dividing the width/height by 2 when both videos are selected
         if userRequest["btnSolarActivityVideo"] and userRequest["btnParticleFluxGraph"]:
             
-            # -------------- For vertical video -------------- #
+            # --------------- For vertical video --------------- #
             if userRequest["Format"] == "Instagram (vertical)":
 
                 # Dividing image height by 2
                 solar_activity_height = solar_activity_height/2
                 particle_graph_height = particle_graph_height/2
-
-                # When a comment is written, it will be
-                # displayed on the middle, between the 
-                # solar activity and particle graph images
-                if userRequest["Comment"] != "\n":
-
-                    solar_activity_height -= COMMENT_BLOCK_HEIGHT/2
-                    particle_graph_height -= COMMENT_BLOCK_HEIGHT/2
             
             # -------------- For horizontal video -------------- #
             elif userRequest["Format"] == "YouTube (horizontal)":
@@ -115,52 +115,144 @@ class AppHandler():
                 solar_activity_width = solar_activity_width/2
                 particle_graph_width = particle_graph_width/2
 
-                # When a comment is written, it will be
-                # displayed on the middle, between the 
-                # solar activity and particle graph images
-                if userRequest["Comment"] != "\n":
+            # -------------------------------------------------- #
+        
+        # Reducing the height of the resolutions when a comment is written,
+        # in order to let space on the screen for the comment
+        if len(userRequest["Comment"]) != 0:
+            
+            # Case for vertical video with the two types of videos
+            if userRequest["Format"] == "Instagram (vertical)" and userRequest["btnSolarActivityVideo"] and userRequest["btnParticleFluxGraph"]:
 
-                    solar_activity_height -= COMMENT_BLOCK_HEIGHT/2
-                    particle_graph_height -= COMMENT_BLOCK_HEIGHT/2
-                    
-                    
+                solar_activity_height -= COMMENT_BLOCK_HEIGHT/2
+                particle_graph_height -= COMMENT_BLOCK_HEIGHT/2
+            
+            # Other cases
+            else:
+                solar_activity_height -= COMMENT_BLOCK_HEIGHT
+                particle_graph_height -= COMMENT_BLOCK_HEIGHT
+
+        # For debug : Displaying the resolutions
+        print("Video resolution :", video_width, "x", video_height)
+        print("Solar activity resolution :", solar_activity_width, "x", solar_activity_height)
+        print("Particle flux graph resolution :", particle_graph_width, "x", particle_graph_height)
+
+        # ---------------------------------- #
+
+
+        # ----- Creating images objects ----- #
+
+        # Getting common userRequest data
+        begin_datetime = userRequest["BeginDatetime"]
+        end_datetime = userRequest["EndDatetime"]
+        input_folder = userRequest["InputFolder"]
+
+        # Creating lists of images
+        solar_activity_images = []
+        particle_graph_images = []
+
+        # Solar activity
+        if userRequest["btnSolarActivityVideo"]:
+            
+            # Creating solar activity object
+            solar_activity_object = SolarActivityImages(beginDateTime=begin_datetime, endDateTime=end_datetime, imageWidth=solar_activity_width, imageHeight=solar_activity_height, inputFolder=input_folder)
+
+            # Gathering images
+            solar_activity_images = solar_activity_object.images
+        
+        # Particle flux graph
+        if userRequest["btnParticleFluxGraph"]:
+
+            # Considering that there are always less solar activity
+            # images than particle flux graph images, if the solar
+            # activity option is selected, we set the number of solar
+            # activity images as the minimum number of video's frames
+            number_of_images = None
+
+            if len(solar_activity_images) > 0:
+                number_of_images = len(solar_activity_images)
+
+            # Creating particle flux graph object
+            particle_graph_object = ParticleFluxGraphImages(beginDateTime=begin_datetime, endDateTime=end_datetime, dctEnergy=userRequest["EnergyData"], imageWidth=particle_graph_width, imageHeight=particle_graph_height, numberOfImages=number_of_images)
+
+            # Gathering images
+            particle_graph_images = particle_graph_object.images
+        # ----------------------------------- #
+
+        # ----- Combining different images (with comment) ----- #
+
+        # Defining the video format (horizontal/vertical)
+        format = ""
+
+        if userRequest["Format"] == "Instagram (vertical)":
+            format = HORIZONTAL
+        elif userRequest["Format"] == "YouTube (horizontal)":
+            format = VERTICAL
+
+        # Combining the different kind of images, with the comment if necessary
+        final_images = self.combine_images(solar_activity_images, particle_graph_images, video_width, video_height, format, userRequest["Comment"])
+
 
 
         
+    # ----- Image combination algorithm ----- #
+    def combine_images(self, solar_activity_images : list, particles_graph_images : list, video_width : float, video_height : float, format : str, comment = ""):
 
-    
+        # --- Creating comment block if it exists --- #
+        comment_block = None
 
-# ----- Video generation algorithm ----- #
-def generate_video(frame_list, video_name):
+        if len(comment) > 0:
 
-    # Changing working directory to the output folder
-    os.chdir('output')
+            # Creating a new image
+            comment_block = Image.new(mode="RGBA", size=(video_width, COMMENT_BLOCK_HEIGHT), color="white")
 
-    # Configuring video writer
-    output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 25, (1280, 720))
+            # Creating the text 
+            text_draw = ImageDraw.Draw(comment_block)
 
-    counter = 1
-    for one_frame in frame_list:
+            # Setting text font
+            text_font = ImageFont.truetype('Arial.ttf', 24)
 
-        # Saving plot as a PIL image
-        current_plot_pil = Image.open(one_frame)
+            # Drawing the text on the image
+            text_draw.text((20, 20), comment, font=text_font, fill="black")
+
+        # ------------------------------------------- #
+
+        # --- Combining images --- #
+        # Tu en es là bg
         
-        # Converting PIL image to OpenCV format
-        current_plot_cv = np.array(current_plot_pil)
-        current_plot_cv = cv2.cvtColor(current_plot_cv, cv2.COLOR_RGB2BGR) # Configuring color
+    # --------------------------------------- #
 
-        # Adding frame on the video
-        output_video.write(current_plot_cv)
+    # ----- Video generation algorithm ----- #
+    def generate_video(self, frame_list, video_name):
 
-        # For debug
-        print(f'Image {counter} written')
-        counter += 1
+        # Changing working directory to the output folder
+        os.chdir('output')
 
-    # Exporting video
-    cv2.destroyAllWindows()
-    output_video.release()
-    print("Video findable on " + os.getcwd() + "/" + video_name)
-    os.chdir('../')
-# -------------------------------------- #
+        # Configuring video writer
+        output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 25, (1280, 720))
+
+        counter = 1
+        for one_frame in frame_list:
+
+            # Saving plot as a PIL image
+            current_plot_pil = Image.open(one_frame)
+            
+            # Converting PIL image to OpenCV format
+            current_plot_cv = np.array(current_plot_pil)
+            current_plot_cv = cv2.cvtColor(current_plot_cv, cv2.COLOR_RGB2BGR) # Configuring color
+
+            # Adding frame on the video
+            output_video.write(current_plot_cv)
+
+            # For debug
+            print(f'Image {counter} written')
+            counter += 1
+
+        # Exporting video
+        cv2.destroyAllWindows()
+        output_video.release()
+        print("Video findable on " + os.getcwd() + "/" + video_name)
+        os.chdir('../')
+    # -------------------------------------- #
     
 
