@@ -198,6 +198,9 @@ class AppHandler():
     # ----- Image combination algorithm ----- #
     def combine_images(self, solar_activity_images : list, particles_graph_images : list, video_width : float, video_height : float, format : str, comment = ""):
 
+        # Dictionary with the final images
+        final_images_dict = []
+
         # --- Creating comment block if it exists --- #
         comment_block = None
 
@@ -218,7 +221,13 @@ class AppHandler():
         # ------------------------------------------- #
 
         # --- Combining images --- #
-        # Tu en es là bg
+        
+        # Vertical format
+        if format == VERTICAL:
+
+            pass
+            # TODO : Determine the number of images and make a for loop based on that number
+
         
     # --------------------------------------- #
 
