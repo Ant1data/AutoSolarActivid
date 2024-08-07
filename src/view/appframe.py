@@ -55,7 +55,7 @@ class AppFrame(ctk.CTkScrollableFrame):
 
         # Creating a frame to put frmFormatQuality and frmFolderPaths side to side
         # --- FormatQualityFolder Frame --- #
-        self.frmFormatQualityFolder = ctk.CTkFrame(self, fg_color=("#FFFFFF", "#000000"))
+        self.frmFormatQualityFolder = ctk.CTkFrame(self, fg_color="transparent")
         self.frmFormatQualityFolder.pack(anchor="center", fill="x", pady=10)
 
         # --- FormatQuality Frame --- #
