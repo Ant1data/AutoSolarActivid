@@ -321,7 +321,7 @@ class ParticleFluxGraphImages():
         print("Number of images :", number_of_images)
 
         # Every line_index corresponds to a frame of the graph animation
-        for line_index in range(number_of_images+1):
+        for line_index in range(1, number_of_images+1):
 
             # --- Building figure algorithm --- #
             
