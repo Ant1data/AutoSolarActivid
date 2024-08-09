@@ -1,12 +1,16 @@
 import customtkinter as ctk
 import cv2
+import io
 import numpy as np
 import os
 
+from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
+
 from model.particlefluxgraphimages import ParticleFluxGraphImages
 from model.solaractivityimages import SolarActivityImages
 from view.appframe import AppFrame
+
 
 ## CONSTANTS --------------------------------------------------------------------------------------------------------- ##
 # Screen formats
@@ -131,6 +135,11 @@ class AppHandler():
             else:
                 solar_activity_height -= COMMENT_BLOCK_HEIGHT
                 particle_graph_height -= COMMENT_BLOCK_HEIGHT
+        
+        # Converting the resolutions into ints
+        video_width, video_height = int(video_width), int(video_height)
+        solar_activity_width, solar_activity_height = int(solar_activity_width), int(solar_activity_height)
+        particle_graph_width, particle_graph_height = int(particle_graph_width), int(particle_graph_height)
 
         # For debug : Displaying the resolutions
         print("Video resolution :", video_width, "x", video_height)
@@ -173,7 +182,7 @@ class AppHandler():
                 number_of_images = len(solar_activity_images)
 
             # Creating particle flux graph object
-            particle_graph_object = ParticleFluxGraphImages(beginDateTime=begin_datetime, endDateTime=end_datetime, dctEnergy=userRequest["EnergyData"], imageWidth=particle_graph_width, imageHeight=particle_graph_height, numberOfImages=number_of_images)
+            particle_graph_object = ParticleFluxGraphImages(beginDateTime=begin_datetime, endDateTime=end_datetime, dctEnergy=userRequest["EnergyData"], imageWidth=particle_graph_width, imageHeight=particle_graph_height, numberOfImages=number_of_images, inputFolder=input_folder)
 
             # Gathering images
             particle_graph_images = particle_graph_object.images
@@ -191,15 +200,40 @@ class AppHandler():
 
         # Combining the different kind of images, with the comment if necessary
         final_images = self.combine_images(solar_activity_images, particle_graph_images, video_width, video_height, format, userRequest["Comment"])
+        # ----------------------------------------------------- #
 
+        # ----- Defining video name ----- #
+        video_name = "SolarActivid"
+
+        # Adding selected video types
+        if userRequest["btnSolarActivityVideo"]:
+            video_name += "_SA"
+        
+        if userRequest["btnParticleFluxGraph"]:
+            video_name += "_PFG"
+        
+        # Adding Begin Datetime
+        video_name += datetime.strftime(userRequest["BeginDatetime"], "_%Y%m%d_%H%M%S")
+        
+        # Adding End Datetime
+        video_name += datetime.strftime(userRequest["EndDatetime"], "_%Y%m%d_%H%M%S")
+        
+        # Adding .mp4
+        video_name += ".mp4"
+
+        # ------------------------------- #
+
+        # ----- Exporting the video ----- #
+        self.generate_video(final_images, video_name=video_name, video_width=video_width, video_height=video_height, output_folder=userRequest["OutputFolder"])
+        # ------------------------------- #
 
 
         
     # ----- Image combination algorithm ----- #
     def combine_images(self, solar_activity_images : list, particles_graph_images : list, video_width : float, video_height : float, format : str, comment = ""):
 
-        # Dictionary with the final images
-        final_images_dict = []
+        # List that will store the final images
+        final_images = []
 
         # --- Creating comment block if it exists --- #
         comment_block = None
@@ -220,25 +254,159 @@ class AppHandler():
 
         # ------------------------------------------- #
 
-        # --- Combining images --- #
+        # --- Getting the number of images --- #
+        number_of_images = 0
+
+        # When the solar activity images are the only one set
+        if not particles_graph_images:
+            number_of_images = len(solar_activity_images)
+
+        # When the particle flux graph images are the only one set
+        elif not solar_activity_images:
+            number_of_images = len(particles_graph_images)
+
+        # When both are set
+        else:
+            
+            # Raising a ValueError when the number of images of both types are unequal
+            if len(solar_activity_images) != len(particles_graph_images):
+                raise ValueError("Internal Problem | The number of solar activity images and the number of particle flux images are unequal. SA = " + str(len(solar_activity_images)) + " and PFG = " + str(len(particles_graph_images)))
+
+            number_of_images = len(solar_activity_images)
+        # ------------------------------------ #
+
+        # --- Getting image dimensions --- #
+        solar_activity_width, solar_activity_height = 0, 0
+        particles_graph_width, particles_graph_height = 0, 0
+        comment_width, comment_height = 0, 0
+
+        # We take the first image of both image types as a reference
+    
+        # Case for solar activity image
+        if len(solar_activity_images) > 0:
+            image_reference = Image.open(solar_activity_images[0])
+            solar_activity_width = image_reference.width
+            solar_activity_height = image_reference.height
         
+        # Case for particle flux graph image
+        if len(particles_graph_images) > 0:
+            image_reference = Image.open(particles_graph_images[0])
+            particles_graph_width = image_reference.width
+            particles_graph_height = image_reference.height
+
+        # Case for the comment
+        if comment_block is not None:
+            comment_width = comment_block.width
+            comment_height = comment_block.height
+        # -------------------------------- #
+
+
+        # --- Combining images --- #
+
         # Vertical format
         if format == VERTICAL:
 
-            pass
-            # TODO : Determine the number of images and make a for loop based on that number
+            # Browsing every image
+            for image_index in range(number_of_images):
+                
+                # Creating new image
+                new_image = Image.new('RGB', (video_height, video_width))
 
+                # Case for solar activity image
+                if len(solar_activity_images) > 0:
+
+                    # Opening the image
+                    sa_image = Image.open(solar_activity_images[image_index])
+                    
+                    # Adding this image to the new image, from the beginning
+                    new_image.paste(sa_image, (0, 0))
+                
+                # Case for comment, if it is defined
+                if comment_block is not None:
+                    
+                    # Adding the comment to the new image
+                    new_image.paste(comment_block, (0, solar_activity_height))
+                
+                # Case for particle flux graph image
+                if len(particles_graph_images) > 0:
+
+                    # Opening the image
+                    pfg_image = Image.open(particles_graph_images[image_index])
+                    
+                    # Adding this image to the new image, after the solar activity image 
+                    new_image.paste(pfg_image, (0, solar_activity_height+comment_height))
+
+
+                # Creating a pure binary variable to store the new image
+                new_image_byte = io.BytesIO()
+
+                # Saving the new image in a pure binary format
+                new_image.save(new_image_byte, format='png')
+
+                # Adding the new image to the list
+                final_images.append(new_image_byte)
         
+
+        # Horizontal format
+        elif format == HORIZONTAL:
+
+            # Browsing every image
+            for image_index in range(number_of_images):
+                
+                # Creating new image
+                new_image = Image.new('RGB', (video_height, video_width))
+
+                # Case for solar activity image
+                if len(solar_activity_images) > 0:
+
+                    # Opening the image
+                    sa_image = Image.open(solar_activity_images[image_index])
+                    
+                    # Adding this image to the new image, from the beginning
+                    new_image.paste(sa_image, (0, 0))
+                
+                # Case for particle flux graph image
+                if len(particles_graph_images) > 0:
+
+                    # Opening the image
+                    pfg_image = Image.open(particles_graph_images[image_index])
+                    
+                    # Adding this image to the new image, after the solar activity image 
+                    new_image.paste(pfg_image, (solar_activity_width, 0))
+                
+                # Case for comment, if it is defined
+                if comment_block is not None:
+                    
+                    # Adding the comment to the new image
+                    new_image.paste(comment_block, (0, video_height-comment_height))
+
+
+                # Creating a pure binary variable to store the new image
+                new_image_byte = io.BytesIO()
+
+                # Saving the new image in a pure binary format
+                new_image.save(new_image_byte, format='png')
+
+                # Adding the new image to the list
+                final_images.append(new_image_byte)        
+
+        # Returning the final images list          
+        return final_images
     # --------------------------------------- #
 
-    # ----- Video generation algorithm ----- #
-    def generate_video(self, frame_list, video_name):
 
-        # Changing working directory to the output folder
-        os.chdir('output')
+
+    # ----- Video generation algorithm ----- #
+    def generate_video(self, frame_list, video_name, video_width, video_height, output_folder : str):
+
+        # Saving previous working directory
+        previous_working_directory = os.getcwd()
+        
+        # Setting working directory to output folder
+        os.chdir(output_folder)
 
         # Configuring video writer
-        output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 25, (1280, 720))
+        output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 25, (video_width, video_height))
 
         counter = 1
         for one_frame in frame_list:
@@ -261,7 +429,9 @@ class AppHandler():
         cv2.destroyAllWindows()
         output_video.release()
         print("Video findable on " + os.getcwd() + "/" + video_name)
-        os.chdir('../')
+
+        # Returning to the previous working directory
+        os.chdir(previous_working_directory)
     # -------------------------------------- #
     
 
