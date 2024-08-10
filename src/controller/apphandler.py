@@ -247,7 +247,7 @@ class AppHandler():
             text_draw = ImageDraw.Draw(comment_block)
 
             # Setting text font
-            text_font = ImageFont.truetype('Arial.ttf', 24)
+            text_font = ImageFont.truetype('arial.ttf', 24)
 
             # Drawing the text on the image
             text_draw.text((20, 20), comment, font=text_font, fill="black")

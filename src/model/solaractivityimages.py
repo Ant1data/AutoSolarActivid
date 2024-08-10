@@ -137,7 +137,7 @@ class SolarActivityImages():
 
             # Adding credits to the images
             draw = ImageDraw.Draw(current_image)
-            arial_font = ImageFont.truetype('Arial.ttf', 32)
+            arial_font = ImageFont.truetype('arial.ttf', 32)
             draw.text((20, 20), "© Solar and Heliospheric Observatory", font=arial_font)
 
             # Changing image size
