@@ -194,9 +194,9 @@ class AppHandler():
         format = ""
 
         if userRequest["Format"] == "Instagram (vertical)":
-            format = HORIZONTAL
-        elif userRequest["Format"] == "YouTube (horizontal)":
             format = VERTICAL
+        elif userRequest["Format"] == "YouTube (horizontal)":
+            format = HORIZONTAL
 
         # Combining the different kind of images, with the comment if necessary
         final_images = self.combine_images(solar_activity_images, particle_graph_images, video_width, video_height, format, userRequest["Comment"])
@@ -230,7 +230,10 @@ class AppHandler():
 
         
     # ----- Image combination algorithm ----- #
-    def combine_images(self, solar_activity_images : list, particles_graph_images : list, video_width : float, video_height : float, format : str, comment = ""):
+    def combine_images(self, solar_activity_images : list, particles_graph_images : list, video_width : int, video_height : int, format : str, comment = ""):
+
+        # For debug 
+        print("Combining images")
 
         # List that will store the final images
         final_images = []
@@ -275,6 +278,9 @@ class AppHandler():
             number_of_images = len(solar_activity_images)
         # ------------------------------------ #
 
+        # For debug : printing the number of images
+        print("Number of images (from AppHandler) :", number_of_images)
+
         # --- Getting image dimensions --- #
         solar_activity_width, solar_activity_height = 0, 0
         particles_graph_width, particles_graph_height = 0, 0
@@ -302,6 +308,9 @@ class AppHandler():
 
 
         # --- Combining images --- #
+        
+        # For debug
+        print("Format : ", format)
 
         # Vertical format
         if format == VERTICAL:
@@ -309,14 +318,17 @@ class AppHandler():
             # Browsing every image
             for image_index in range(number_of_images):
                 
-                # Creating new image
-                new_image = Image.new('RGB', (video_height, video_width))
+                # Creating new image (with a black background)
+                new_image = Image.new(mode="RGBA", size=(video_width, video_height), color="black")
 
                 # Case for solar activity image
                 if len(solar_activity_images) > 0:
 
                     # Opening the image
                     sa_image = Image.open(solar_activity_images[image_index])
+
+                    # For debug : printing sa_image dimensions
+                    print(sa_image.width,"x", sa_image.height)
                     
                     # Adding this image to the new image, from the beginning
                     new_image.paste(sa_image, (0, 0))
@@ -324,6 +336,9 @@ class AppHandler():
                 # Case for comment, if it is defined
                 if comment_block is not None:
                     
+                    # For debug : printing sa_image dimensions
+                    print(comment_block.width,"x", comment_block.height)
+
                     # Adding the comment to the new image
                     new_image.paste(comment_block, (0, solar_activity_height))
                 
@@ -332,11 +347,14 @@ class AppHandler():
 
                     # Opening the image
                     pfg_image = Image.open(particles_graph_images[image_index])
+
+                    # For debug : printing sa_image dimensions
+                    print(pfg_image.width,"x", pfg_image.height)
                     
                     # Adding this image to the new image, after the solar activity image 
                     new_image.paste(pfg_image, (0, solar_activity_height+comment_height))
 
-
+                
                 # Creating a pure binary variable to store the new image
                 new_image_byte = io.BytesIO()
 
@@ -354,7 +372,7 @@ class AppHandler():
             for image_index in range(number_of_images):
                 
                 # Creating new image
-                new_image = Image.new('RGB', (video_height, video_width))
+                new_image = Image.new(mode="RGBA", size=(video_width, video_height), color="black")
 
                 # Case for solar activity image
                 if len(solar_activity_images) > 0:
