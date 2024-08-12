@@ -1,8 +1,9 @@
 .idea/
 .venv/
 .DS_Store
+build/
+dist/
 input/
 output/
 src/__pycache__/
-src/view/__pycache__/
-src/tmp/
+src/__pycache__/
