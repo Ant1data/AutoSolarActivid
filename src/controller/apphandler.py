@@ -10,6 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 from model.particlefluxgraphimages import ParticleFluxGraphImages
 from model.solaractivityimages import SolarActivityImages
 from view.appframe import AppFrame
+from view.loadingframe import LoadingFrame
 
 
 ## CONSTANTS --------------------------------------------------------------------------------------------------------- ##
@@ -44,16 +45,39 @@ class AppHandler():
         self.main_window.minsize(500, 375)
         self.main_window.title("SolarActivid")
 
-        # Creating the main AppFrame
-        self.frmApp = AppFrame(apphandler=self, master=self.main_window, width=1200, height=1400, fg_color=("white", "gray5"))
-        self.frmApp.pack()
+        # Creating frame variables
+        self.frmApp = None
+        self.frmLoading = None
+
+        # Starting a new user request
+        self.newUserRequest()
 
         # Launching app
-        self.main_window.mainloop()
+        self.main_window.mainloop()        
     ## --------------------------------------------------------------------------------------------------------------------- ##
 
     
     ## METHODS ------------------------------------------------------------------------------------------------------------- ##
+
+    # Function to start a new user request
+    def newUserRequest(self):
+
+        # Creating the main AppFrame
+        self.frmApp = AppFrame(apphandler=self, master=self.main_window, width=1200, height=1400, fg_color=("white", "gray5"))
+        self.frmApp.pack()
+    
+    
+    # Function to display the loading frame
+    # while treating the user's request
+    def displayLoadingFrame(self):
+
+        # Removing the app frame from the main_window
+        self.frmApp.pack_forget()
+
+        # Adding the loading frame to the main_window
+        self.frmLoading = LoadingFrame(master=self.main_window, fg_color="transparent")
+    
+
     # Function to treat the user's request,
     # triggered by the "Generate" button
     def treatUserRequest(self, userRequest: dict[str, any]):
