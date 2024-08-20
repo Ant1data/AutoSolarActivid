@@ -3,6 +3,7 @@ import cv2
 import io
 import numpy as np
 import os
+import tkinter.messagebox as tkm
 
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
@@ -26,8 +27,8 @@ RESOLUTION_VERTICAL_HIGH = (1080, 1920)
 
 # Comment block height
 COMMENT_BLOCK_HEIGHT = 60
-
 ## ------------------------------------------------------------------------------------------------------------------- ##
+
 
 
 class AppHandler():
@@ -62,7 +63,11 @@ class AppHandler():
     # Function to start a new user request
     def newUserRequest(self):
 
-        # Creating the main AppFrame
+        # Removing the loading frame from the main_window if it exists
+        if self.frmLoading is not None:
+            self.frmLoading.pack_forget()
+
+        # Creating and adding the app frame to the main_window
         self.frmApp = AppFrame(apphandler=self, master=self.main_window, width=1200, height=1400, fg_color=("white", "gray5"))
         self.frmApp.pack()
     
@@ -74,182 +79,194 @@ class AppHandler():
         # Removing the app frame from the main_window
         self.frmApp.pack_forget()
 
-        # Adding the loading frame to the main_window
+        # Creating and adding the loading frame to the main_window
         self.frmLoading = LoadingFrame(master=self.main_window, fg_color="transparent")
+        self.frmLoading.pack()
     
 
     # Function to treat the user's request,
     # triggered by the "Generate" button
     def treatUserRequest(self, userRequest: dict[str, any]):
-
-        # For debug 
-        print(userRequest)
         
-        # ----- Video format and quality ----- #
-        video_width, video_height = 0, 0
+        # ---------- Main program ---------- #
+        try:
 
-        # Vertical image
-        if userRequest["Format"] == "Instagram (vertical)":
+            # For debug 
+            print(userRequest)
             
-            # Medium resolution
-            if userRequest["Quality"] == "Medium (720p)":
-                
-                video_width, video_height = RESOLUTION_VERTICAL_MED
-            
-            # High resolution
-            elif userRequest["Quality"] == "High (1080p)":
-                
-                video_width, video_height = RESOLUTION_VERTICAL_HIGH
+            # ----- Video format and quality ----- #
+            video_width, video_height = 0, 0
 
-        # Horizontal image
-        elif userRequest["Format"] == "YouTube (horizontal)":
-            
-            # Medium resolution
-            if userRequest["Quality"] == "Medium (720p)":
-                
-                video_width, video_height = RESOLUTION_HORIZONTAL_MED
-            
-            # High resolution
-            elif userRequest["Quality"] == "High (1080p)":
-                
-                video_width, video_height = RESOLUTION_HORIZONTAL_HIGH
-
-        # ------------------------------------ #
-
-
-        # ----- Image types resolution ----- #
-
-        # Resolution for solar activity (video's by default)
-        solar_activity_width, solar_activity_height = video_width, video_height
-
-        # Resolution for particle flux graphs (video's by default)
-        particle_graph_width, particle_graph_height = video_width, video_height
-
-
-        # Dividing the width/height by 2 when both videos are selected
-        if userRequest["btnSolarActivityVideo"] and userRequest["btnParticleFluxGraph"]:
-            
-            # --------------- For vertical video --------------- #
+            # Vertical image
             if userRequest["Format"] == "Instagram (vertical)":
+                
+                # Medium resolution
+                if userRequest["Quality"] == "Medium (720p)":
+                    
+                    video_width, video_height = RESOLUTION_VERTICAL_MED
+                
+                # High resolution
+                elif userRequest["Quality"] == "High (1080p)":
+                    
+                    video_width, video_height = RESOLUTION_VERTICAL_HIGH
 
-                # Dividing image height by 2
-                solar_activity_height = solar_activity_height/2
-                particle_graph_height = particle_graph_height/2
-            
-            # -------------- For horizontal video -------------- #
+            # Horizontal image
             elif userRequest["Format"] == "YouTube (horizontal)":
+                
+                # Medium resolution
+                if userRequest["Quality"] == "Medium (720p)":
+                    
+                    video_width, video_height = RESOLUTION_HORIZONTAL_MED
+                
+                # High resolution
+                elif userRequest["Quality"] == "High (1080p)":
+                    
+                    video_width, video_height = RESOLUTION_HORIZONTAL_HIGH
 
-                # Dividing image width by 2
-                solar_activity_width = solar_activity_width/2
-                particle_graph_width = particle_graph_width/2
+            # ------------------------------------ #
 
-            # -------------------------------------------------- #
-        
-        # Reducing the height of the resolutions when a comment is written,
-        # in order to let space on the screen for the comment
-        if len(userRequest["Comment"]) != 0:
+
+            # ----- Image types resolution ----- #
+
+            # Resolution for solar activity (video's by default)
+            solar_activity_width, solar_activity_height = video_width, video_height
+
+            # Resolution for particle flux graphs (video's by default)
+            particle_graph_width, particle_graph_height = video_width, video_height
+
+
+            # Dividing the width/height by 2 when both videos are selected
+            if userRequest["btnSolarActivityVideo"] and userRequest["btnParticleFluxGraph"]:
+                
+                # --------------- For vertical video --------------- #
+                if userRequest["Format"] == "Instagram (vertical)":
+
+                    # Dividing image height by 2
+                    solar_activity_height = solar_activity_height/2
+                    particle_graph_height = particle_graph_height/2
+                
+                # -------------- For horizontal video -------------- #
+                elif userRequest["Format"] == "YouTube (horizontal)":
+
+                    # Dividing image width by 2
+                    solar_activity_width = solar_activity_width/2
+                    particle_graph_width = particle_graph_width/2
+
+                # -------------------------------------------------- #
             
-            # Case for vertical video with the two types of videos
-            if userRequest["Format"] == "Instagram (vertical)" and userRequest["btnSolarActivityVideo"] and userRequest["btnParticleFluxGraph"]:
+            # Reducing the height of the resolutions when a comment is written,
+            # in order to let space on the screen for the comment
+            if len(userRequest["Comment"]) != 0:
+                
+                # Case for vertical video with the two types of videos
+                if userRequest["Format"] == "Instagram (vertical)" and userRequest["btnSolarActivityVideo"] and userRequest["btnParticleFluxGraph"]:
 
-                solar_activity_height -= COMMENT_BLOCK_HEIGHT/2
-                particle_graph_height -= COMMENT_BLOCK_HEIGHT/2
+                    solar_activity_height -= COMMENT_BLOCK_HEIGHT/2
+                    particle_graph_height -= COMMENT_BLOCK_HEIGHT/2
+                
+                # Other cases
+                else:
+                    solar_activity_height -= COMMENT_BLOCK_HEIGHT
+                    particle_graph_height -= COMMENT_BLOCK_HEIGHT
             
-            # Other cases
-            else:
-                solar_activity_height -= COMMENT_BLOCK_HEIGHT
-                particle_graph_height -= COMMENT_BLOCK_HEIGHT
+            # Converting the resolutions into ints
+            video_width, video_height = int(video_width), int(video_height)
+            solar_activity_width, solar_activity_height = int(solar_activity_width), int(solar_activity_height)
+            particle_graph_width, particle_graph_height = int(particle_graph_width), int(particle_graph_height)
+
+            # For debug : Displaying the resolutions
+            print("Video resolution :", video_width, "x", video_height)
+            print("Solar activity resolution :", solar_activity_width, "x", solar_activity_height)
+            print("Particle flux graph resolution :", particle_graph_width, "x", particle_graph_height)
+
+            # ---------------------------------- #
+
+
+            # ----- Creating images objects ----- #
+
+            # Getting common userRequest data
+            begin_datetime = userRequest["BeginDatetime"]
+            end_datetime = userRequest["EndDatetime"]
+            input_folder = userRequest["InputFolder"]
+
+            # Creating lists of images
+            solar_activity_images = []
+            particle_graph_images = []
+
+            # Solar activity
+            if userRequest["btnSolarActivityVideo"]:
+                
+                # Creating solar activity object
+                solar_activity_object = SolarActivityImages(beginDateTime=begin_datetime, endDateTime=end_datetime, imageWidth=solar_activity_width, imageHeight=solar_activity_height, inputFolder=input_folder)
+
+                # Gathering images
+                solar_activity_images = solar_activity_object.images
+            
+            # Particle flux graph
+            if userRequest["btnParticleFluxGraph"]:
+
+                # Considering that there are always less solar activity
+                # images than particle flux graph images, if the solar
+                # activity option is selected, we set the number of solar
+                # activity images as the minimum number of video's frames
+                number_of_images = None
+
+                if len(solar_activity_images) > 0:
+                    number_of_images = len(solar_activity_images)
+
+                # Creating particle flux graph object
+                particle_graph_object = ParticleFluxGraphImages(beginDateTime=begin_datetime, endDateTime=end_datetime, dctEnergy=userRequest["EnergyData"], imageWidth=particle_graph_width, imageHeight=particle_graph_height, numberOfImages=number_of_images, inputFolder=input_folder)
+
+                # Gathering images
+                particle_graph_images = particle_graph_object.images
+            # ----------------------------------- #
+
+            # ----- Combining different images (with comment) ----- #
+
+            # Defining the video format (horizontal/vertical)
+            format = ""
+
+            if userRequest["Format"] == "Instagram (vertical)":
+                format = VERTICAL
+            elif userRequest["Format"] == "YouTube (horizontal)":
+                format = HORIZONTAL
+
+            # Combining the different kind of images, with the comment if necessary
+            final_images = self.combine_images(solar_activity_images, particle_graph_images, video_width, video_height, format, userRequest["Comment"])
+            # ----------------------------------------------------- #
+
+            # ----- Defining video name ----- #
+            video_name = "SolarActivid"
+
+            # Adding selected video types
+            if userRequest["btnSolarActivityVideo"]:
+                video_name += "_SA"
+            
+            if userRequest["btnParticleFluxGraph"]:
+                video_name += "_PFG"
+            
+            # Adding Begin Datetime
+            video_name += datetime.strftime(userRequest["BeginDatetime"], "_%Y%m%d_%H%M%S")
+            
+            # Adding End Datetime
+            video_name += datetime.strftime(userRequest["EndDatetime"], "_%Y%m%d_%H%M%S")
+            
+            # Adding .mp4
+            video_name += ".mp4"
+
+            # ------------------------------- #
+
+            # ----- Exporting the video ----- #
+            self.generate_video(final_images, video_name=video_name, video_width=video_width, video_height=video_height, output_folder=userRequest["OutputFolder"])
+            # ------------------------------- #
         
-        # Converting the resolutions into ints
-        video_width, video_height = int(video_width), int(video_height)
-        solar_activity_width, solar_activity_height = int(solar_activity_width), int(solar_activity_height)
-        particle_graph_width, particle_graph_height = int(particle_graph_width), int(particle_graph_height)
-
-        # For debug : Displaying the resolutions
-        print("Video resolution :", video_width, "x", video_height)
-        print("Solar activity resolution :", solar_activity_width, "x", solar_activity_height)
-        print("Particle flux graph resolution :", particle_graph_width, "x", particle_graph_height)
-
         # ---------------------------------- #
 
+        # ----- Exceptions handling ----- #
+        except Exception as e:
 
-        # ----- Creating images objects ----- #
-
-        # Getting common userRequest data
-        begin_datetime = userRequest["BeginDatetime"]
-        end_datetime = userRequest["EndDatetime"]
-        input_folder = userRequest["InputFolder"]
-
-        # Creating lists of images
-        solar_activity_images = []
-        particle_graph_images = []
-
-        # Solar activity
-        if userRequest["btnSolarActivityVideo"]:
-            
-            # Creating solar activity object
-            solar_activity_object = SolarActivityImages(beginDateTime=begin_datetime, endDateTime=end_datetime, imageWidth=solar_activity_width, imageHeight=solar_activity_height, inputFolder=input_folder)
-
-            # Gathering images
-            solar_activity_images = solar_activity_object.images
-        
-        # Particle flux graph
-        if userRequest["btnParticleFluxGraph"]:
-
-            # Considering that there are always less solar activity
-            # images than particle flux graph images, if the solar
-            # activity option is selected, we set the number of solar
-            # activity images as the minimum number of video's frames
-            number_of_images = None
-
-            if len(solar_activity_images) > 0:
-                number_of_images = len(solar_activity_images)
-
-            # Creating particle flux graph object
-            particle_graph_object = ParticleFluxGraphImages(beginDateTime=begin_datetime, endDateTime=end_datetime, dctEnergy=userRequest["EnergyData"], imageWidth=particle_graph_width, imageHeight=particle_graph_height, numberOfImages=number_of_images, inputFolder=input_folder)
-
-            # Gathering images
-            particle_graph_images = particle_graph_object.images
-        # ----------------------------------- #
-
-        # ----- Combining different images (with comment) ----- #
-
-        # Defining the video format (horizontal/vertical)
-        format = ""
-
-        if userRequest["Format"] == "Instagram (vertical)":
-            format = VERTICAL
-        elif userRequest["Format"] == "YouTube (horizontal)":
-            format = HORIZONTAL
-
-        # Combining the different kind of images, with the comment if necessary
-        final_images = self.combine_images(solar_activity_images, particle_graph_images, video_width, video_height, format, userRequest["Comment"])
-        # ----------------------------------------------------- #
-
-        # ----- Defining video name ----- #
-        video_name = "SolarActivid"
-
-        # Adding selected video types
-        if userRequest["btnSolarActivityVideo"]:
-            video_name += "_SA"
-        
-        if userRequest["btnParticleFluxGraph"]:
-            video_name += "_PFG"
-        
-        # Adding Begin Datetime
-        video_name += datetime.strftime(userRequest["BeginDatetime"], "_%Y%m%d_%H%M%S")
-        
-        # Adding End Datetime
-        video_name += datetime.strftime(userRequest["EndDatetime"], "_%Y%m%d_%H%M%S")
-        
-        # Adding .mp4
-        video_name += ".mp4"
-
-        # ------------------------------- #
-
-        # ----- Exporting the video ----- #
-        self.generate_video(final_images, video_name=video_name, video_width=video_width, video_height=video_height, output_folder=userRequest["OutputFolder"])
-        # ------------------------------- #
+            # Creating a message box
+            tkm.showerror(title="Error", message=str(e))
 
 
         
