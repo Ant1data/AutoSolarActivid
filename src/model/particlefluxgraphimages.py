@@ -9,17 +9,20 @@ import numpy as np
 import os
 import sys
 
-from common.exceptions import NoDataFoundError
 from datetime import datetime
 from PIL import Image
+
+from common.exceptions import NoDataFoundError
+
 
 class ParticleFluxGraphImages():
 
     ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
     ## It that will directly build the graph images
-    def __init__(self, beginDateTime : datetime, endDateTime : datetime, dctEnergy : dict[str, bool], imageWidth : float, imageHeight : float, inputFolder : str, numberOfImages = None):
+    def __init__(self, appHandler, beginDateTime : datetime, endDateTime : datetime, dctEnergy : dict[str, bool], imageWidth : float, imageHeight : float, inputFolder : str, numberOfImages = None):
         
         # Defining attributes from parameters
+        self.appHandler = appHandler # Importing AppHandler for manipulating the LoadingFrame
         self.beginDateTime = beginDateTime
         self.endDateTime = endDateTime
         self.dctEnergy = dctEnergy
@@ -318,7 +321,7 @@ class ParticleFluxGraphImages():
                 number_of_images = min(len(proton_start_datetimes), len(neutron_start_datetimes))
 
         # For debug
-        print("Number of images :", number_of_images)
+        print("Number of graph images :", number_of_images)
 
         # Every line_index corresponds to a frame of the graph animation
         for line_index in range(1, number_of_images+1):
@@ -388,7 +391,14 @@ class ParticleFluxGraphImages():
 
                 # We store this frame of the graph on the final images list
                 images_list.append(current_plot_byte)
-                # ---------------------------------- #  
+                # --------------------- #
+
+            # --------------------------------- #
+
+            # --- Increasing percentage on loading frame --- #
+            self.appHandler.frmLoading.update_percentage(line_index, number_of_images)
+            # ---------------------------------------------- #
+
         ## ----------------------------------- #
         return images_list    
 

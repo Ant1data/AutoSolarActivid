@@ -24,14 +24,36 @@ class LoadingFrame(ctk.CTkFrame):
         # Changing Loading ProgressBar value
         self.pgbLoading.set(0)
 
+
+
     ## METHODS ------------------------------------------------------------------------------------------------------------- ##
+
+    # This function changes the information 
+    def update_info(self, new_info_content : str, current_step = None, total_steps = None):
+
+        # Creating the new label sentence
+        new_label = ""
+
+        # If the current step and max steps are defined,
+        # we insert them on the info label
+        if current_step is not None and total_steps is not None:
+            new_label += "Step " + str(current_step) + " of " + str(total_steps) + ": "
+
+        # Updating the new info content 
+        new_label += new_info_content
+
+        # Adding the new content on the lblInfo
+        self.lblInfo = new_label
+
+
     
-    # This function, triggered by AppHandler, changes the percentage,
+    
+    # This function changes the percentage label and the progress bar,
     # depending on the current step and the max step
-    def updtae_step(self, current_step : int, max_steps : int):
+    def update_percentage(self, current_step : int, total_steps : int):
         
         # Updating progress bar
-        self.pgbLoading.set(current_step/max_steps)
+        self.pgbLoading.set(current_step/total_steps)
 
         # Updating Percentage label
-        self.lblPercentage._text = str(int((current_step/max_steps)*100)) + "%"
+        self.lblPercentage._text = str(int((current_step/total_steps)*100)) + "%"

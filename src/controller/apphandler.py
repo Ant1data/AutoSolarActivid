@@ -50,6 +50,10 @@ class AppHandler():
         self.frmApp = None
         self.frmLoading = None
 
+        # Creating loading steps variables
+        self.current_generation_step = 0
+        self.total_generation_steps = 0
+
         # Starting a new user request
         self.newUserRequest()
 
@@ -88,8 +92,8 @@ class AppHandler():
     # triggered by the "Generate" button
     def treatUserRequest(self, userRequest: dict[str, any]):
         
-        # ---------- Main program ---------- #
-        try:
+        # ---------- Main algorithm ---------- #
+        # try:
 
             # For debug 
             print(userRequest)
@@ -128,10 +132,10 @@ class AppHandler():
 
             # ----- Image types resolution ----- #
 
-            # Resolution for solar activity (video's by default)
+            # Resolution for solar activity (video's resolution by default)
             solar_activity_width, solar_activity_height = video_width, video_height
 
-            # Resolution for particle flux graphs (video's by default)
+            # Resolution for particle flux graphs (video's resolution by default)
             particle_graph_width, particle_graph_height = video_width, video_height
 
 
@@ -182,6 +186,34 @@ class AppHandler():
             # ---------------------------------- #
 
 
+            # ----- Making and setting loading frame ----- #
+
+            # Defining the total number of steps to generate the video
+            self.total_generation_steps = 0
+
+            # Adding a step : Solar activity video generation
+            if userRequest["btnSolarActivityVideo"]:
+                self.total_generation_steps += 1
+            
+            # Adding a step : Particle flux graph images
+            if userRequest["btnParticleFluxGraph"]:
+                self.total_generation_steps += 1
+            
+            # Checking if some content will be generated
+            if self.total_generation_steps > 0:
+
+                # Adding 2 steps (1 for combinging the images, 1 for exporting the video)
+                self.total_generation_steps += 2
+            
+                # Setting the current step to 0
+                self.current_generation_step = 0
+            
+                # Displaying the LoadingFrame on the window
+                self.displayLoadingFrame()
+
+            # -------------------------------------------- #
+            
+
             # ----- Creating images objects ----- #
 
             # Getting common userRequest data
@@ -195,15 +227,33 @@ class AppHandler():
 
             # Solar activity
             if userRequest["btnSolarActivityVideo"]:
-                
+
+                # FOR LOADING FRAME
+                ###################
+                # Incrementing current generation step
+                self.current_generation_step += 1
+
+                # Displaying the information on the Loading Frame
+                self.frmLoading.update_info("Fetching solar activity images", self.current_generation_step, self.total_generation_steps)
+                ###################
+
                 # Creating solar activity object
-                solar_activity_object = SolarActivityImages(beginDateTime=begin_datetime, endDateTime=end_datetime, imageWidth=solar_activity_width, imageHeight=solar_activity_height, inputFolder=input_folder)
+                solar_activity_object = SolarActivityImages(self, beginDateTime=begin_datetime, endDateTime=end_datetime, imageWidth=solar_activity_width, imageHeight=solar_activity_height, inputFolder=input_folder)
 
                 # Gathering images
                 solar_activity_images = solar_activity_object.images
             
             # Particle flux graph
             if userRequest["btnParticleFluxGraph"]:
+
+                # FOR LOADING FRAME
+                ###################
+                # Incrementing current generation step
+                self.current_generation_step += 1
+
+                # Displaying the information on the Loading Frame
+                self.frmLoading.update_info("Generating particle flux graph images", self.current_generation_step, self.total_generation_steps)
+                ###################
 
                 # Considering that there are always less solar activity
                 # images than particle flux graph images, if the solar
@@ -215,13 +265,22 @@ class AppHandler():
                     number_of_images = len(solar_activity_images)
 
                 # Creating particle flux graph object
-                particle_graph_object = ParticleFluxGraphImages(beginDateTime=begin_datetime, endDateTime=end_datetime, dctEnergy=userRequest["EnergyData"], imageWidth=particle_graph_width, imageHeight=particle_graph_height, numberOfImages=number_of_images, inputFolder=input_folder)
+                particle_graph_object = ParticleFluxGraphImages(self, beginDateTime=begin_datetime, endDateTime=end_datetime, dctEnergy=userRequest["EnergyData"], imageWidth=particle_graph_width, imageHeight=particle_graph_height, numberOfImages=number_of_images, inputFolder=input_folder)
 
                 # Gathering images
                 particle_graph_images = particle_graph_object.images
             # ----------------------------------- #
 
             # ----- Combining different images (with comment) ----- #
+
+            # FOR LOADING FRAME
+            ###################
+            # Incrementing current generation step
+            self.current_generation_step += 1
+
+            # Displaying the information on the Loading Frame
+            self.frmLoading.update_info("Combining images", self.current_generation_step, self.total_generation_steps)
+            ###################
 
             # Defining the video format (horizontal/vertical)
             format = ""
@@ -257,16 +316,26 @@ class AppHandler():
             # ------------------------------- #
 
             # ----- Exporting the video ----- #
+
+            # FOR LOADING FRAME
+            ###################
+            # Incrementing current generation step
+            self.current_generation_step += 1
+
+            # Displaying the information on the Loading Frame
+            self.frmLoading.update_info("Exporting video", self.current_generation_step, self.total_generation_steps)
+            ###################
+
             self.generate_video(final_images, video_name=video_name, video_width=video_width, video_height=video_height, output_folder=userRequest["OutputFolder"])
             # ------------------------------- #
         
         # ---------------------------------- #
 
         # ----- Exceptions handling ----- #
-        except Exception as e:
+        # except Exception as e:
 
-            # Creating a message box
-            tkm.showerror(title="Error", message=str(e))
+        #     # Creating a message box
+        #     tkm.showerror(title="Error", message=str(e))
 
 
         
@@ -404,6 +473,10 @@ class AppHandler():
 
                 # Adding the new image to the list
                 final_images.append(new_image_byte)
+
+                # --- Increasing percentage on loading frame --- #
+                self.frmLoading.update_percentage(image_index+1, number_of_images)
+                # ---------------------------------------------- #
         
 
         # Horizontal format
@@ -447,7 +520,12 @@ class AppHandler():
                 new_image.save(new_image_byte, format='png')
 
                 # Adding the new image to the list
-                final_images.append(new_image_byte)        
+                final_images.append(new_image_byte)
+
+                # --- Increasing percentage on loading frame --- #
+                self.frmLoading.update_percentage(image_index+1, number_of_images)
+                # ---------------------------------------------- #     
+
 
         # Returning the final images list          
         return final_images
@@ -467,6 +545,9 @@ class AppHandler():
         # Configuring video writer
         output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 25, (video_width, video_height))
 
+        # Defining the number of images
+        number_of_images = len(frame_list)
+
         counter = 1
         for one_frame in frame_list:
 
@@ -484,6 +565,10 @@ class AppHandler():
             print(f'Image {counter} written')
             counter += 1
 
+            # --- Increasing percentage on loading frame --- #
+            self.frmLoading.update_percentage(counter, number_of_images)
+            # ---------------------------------------------- #
+
         # Exporting video
         cv2.destroyAllWindows()
         output_video.release()
@@ -492,5 +577,3 @@ class AppHandler():
         # Returning to the previous working directory
         os.chdir(previous_working_directory)
     # -------------------------------------- #
-    
-

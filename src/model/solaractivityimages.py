@@ -4,9 +4,11 @@ import numpy as np
 import operator
 import os
 
-from common.exceptions import NoDataFoundError
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
+
+from common.exceptions import NoDataFoundError
+
 
 ## CONSTANTS --------------------------------------------------------------------------------------------------------- ##
 
@@ -28,9 +30,10 @@ class SolarActivityImages():
 
     ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
     ## It that will directly pick the images
-    def __init__(self, beginDateTime : datetime, endDateTime : datetime, imageWidth : float, imageHeight : float, inputFolder : str):
+    def __init__(self, appHandler, beginDateTime : datetime, endDateTime : datetime, imageWidth : float, imageHeight : float, inputFolder : str):
         
         # Defining attributes from parameters
+        self.appHandler = appHandler # Importing AppHandler for manipulating the LoadingFrame
         self.beginDateTime = beginDateTime
         self.endDateTime = endDateTime
         self.imageWidth = imageWidth
@@ -104,10 +107,10 @@ class SolarActivityImages():
                     # Adding the file name to the filenames list
                     self.images_filenames.append(image_filename)
 
-        # # Case when no images has been found,
-        # # We raise a NoDataFoundError exception
-        # if len(self.images_filenames) == 0:
-        #     raise NoDataFoundError("No corresponding solar activity images has been found")
+        # Case when no images has been found,
+        # We raise a NoDataFoundError exception
+        if len(self.images_filenames) == 0:
+            raise NoDataFoundError("No corresponding solar activity images has been found")
                     
         # Getting major resolution and type to select the images with the major resolution and type
         major_resolution = max(resolution_numbers.items(), key=operator.itemgetter(1))[0]
@@ -128,10 +131,15 @@ class SolarActivityImages():
         
         # Sorting the filenames
         self.images_filenames.sort()
+        
+        # Setting steps for LoadingFrame percentage
+        current_step = 0
+        total_steps = len(self.images_filenames)
+        
 
         # Adding every image in Byte format
         for one_image in self.images_filenames:
-            
+
             # Opening the image
             current_image = Image.open(one_image, mode='r')
 
@@ -152,6 +160,11 @@ class SolarActivityImages():
 
             # Adding the image to the list
             self.images.append(current_image_byte)
+
+            # --- Increasing percentage on loading frame --- #
+            current_step += 1
+            self.appHandler.frmLoading.update_percentage(current_step, total_steps)
+            # ---------------------------------------------- #
         
         # Resetting working directory to the previous one
         os.chdir(previous_working_directory)
