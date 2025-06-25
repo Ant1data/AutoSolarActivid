@@ -19,10 +19,9 @@ class ParticleFluxGraphImages():
 
     ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
     ## It that will directly build the graph images
-    def __init__(self, appHandler, beginDateTime : datetime, endDateTime : datetime, dctEnergy : dict[str, bool], imageWidth : float, imageHeight : float, inputFolder : str, numberOfImages = None):
+    def __init__(self, beginDateTime : datetime, endDateTime : datetime, dctEnergy : dict[str, bool], imageWidth : float, imageHeight : float, inputFolder : str, numberOfImages = None):
         
         # Defining attributes from parameters
-        self.appHandler = appHandler # Importing AppHandler for manipulating the LoadingFrame
         self.beginDateTime = beginDateTime
         self.endDateTime = endDateTime
         self.dctEnergy = dctEnergy
@@ -396,7 +395,7 @@ class ParticleFluxGraphImages():
             # --------------------------------- #
 
             # --- Increasing percentage on loading frame --- #
-            self.appHandler.frmLoading.update_percentage(line_index, number_of_images)
+            # self.appHandler.frmLoading.update_percentage(line_index, number_of_images)
             # ---------------------------------------------- #
 
         ## ----------------------------------- #

@@ -30,10 +30,9 @@ class SolarActivityImages():
 
     ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
     ## It that will directly pick the images
-    def __init__(self, appHandler, beginDateTime : datetime, endDateTime : datetime, imageWidth : float, imageHeight : float, inputFolder : str):
+    def __init__(self, beginDateTime : datetime, endDateTime : datetime, imageWidth : float, imageHeight : float, inputFolder : str):
         
         # Defining attributes from parameters
-        self.appHandler = appHandler # Importing AppHandler for manipulating the LoadingFrame
         self.beginDateTime = beginDateTime
         self.endDateTime = endDateTime
         self.imageWidth = imageWidth
@@ -162,8 +161,8 @@ class SolarActivityImages():
             self.images.append(current_image_byte)
 
             # --- Increasing percentage on loading frame --- #
-            current_step += 1
-            self.appHandler.frmLoading.update_percentage(current_step, total_steps)
+            # current_step += 1
+            # self.appHandler.frmLoading.update_percentage(current_step, total_steps)
             # ---------------------------------------------- #
         
         # Resetting working directory to the previous one
