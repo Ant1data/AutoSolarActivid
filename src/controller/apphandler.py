@@ -52,10 +52,6 @@ class AppHandler():
         self.frmApp = None
         self.frmLoading = None
 
-        # Creating loading steps variables
-        self.current_generation_step = 0
-        self.total_generation_steps = 0
-
         # Starting a new user request
         self.newUserRequest()
 
@@ -194,41 +190,35 @@ class AppHandler():
             # ----- Launching the generation process ----- #
 
             # Defining the total number of steps to generate the video
-            self.total_generation_steps = 0
+            total_generation_steps = 0
 
             # Adding a step : Solar activity video generation
             if userRequest["btnSolarActivityVideo"]:
-                self.total_generation_steps += 1
+                total_generation_steps += 1
             
             # Adding a step : Particle flux graph images
             if userRequest["btnParticleFluxGraph"]:
-                self.total_generation_steps += 1
+                total_generation_steps += 1
             
             # Checking if some content will be generated
-            if self.total_generation_steps > 0:
+            if total_generation_steps > 0:
 
                 # Adding 2 steps (1 for combinging the images, 1 for exporting the video)
-                self.total_generation_steps += 2
-            
-                # Setting the current step to 0
-                self.current_generation_step = 0
-            
-                # Displaying the LoadingFrame on the window
-                # self.displayLoadingFrame()
+                total_generation_steps += 2
 
                 # Creating queue to allow both videoGeneration and loadingFrame
                 # threads to communicate between each other
                 communicationQueue = Queue()
 
                 # Loading threads 
-                loadingFrameThread = Thread(target=self.handleLoadingFrame, args=(communicationQueue))
+                loadingFrameThread = Thread(target=self.handleLoadingFrame, args=(communicationQueue, total_generation_steps))
                 videoGenerationThread = Thread(target=self.processVideoCreation, args=(communicationQueue, userRequest, videoDimensions))
 
                 # Launching threads
                 loadingFrameThread.start()
                 videoGenerationThread.start()
 
-                # Threads are working...
+                # Here, both threads are supposed to be working...
 
                 # Waiting the queue's job to be done
                 communicationQueue.join()
@@ -368,8 +358,23 @@ class AppHandler():
 
 
     # ----- Function called as a thread to handle the loading frame ----- #
-    def handleLoadingFrame(self, queue):
-        pass
+    def handleLoadingFrame(self, queue, total_steps):
+
+        # Removing the app frame from the main_window
+        self.frmApp.pack_forget()
+
+        # Creating and adding the loading frame to the main_window
+        self.frmLoading = LoadingFrame(master=self.main_window, fg_color="transparent")
+        self.frmLoading.pack()
+
+        # Repeating until the final signal is raised
+        while True:
+
+            # Fetching information from queue
+            (data, data) = queue.get()
+
+            ## TODO : Define all cases for displaying informations
+        
 
     # ----- Function called as a thread to generate video ----- #
     def processVideoCreation(self, queue, userRequest, videoDimensions):
@@ -391,10 +396,9 @@ class AppHandler():
             # FOR LOADING FRAME
             ###################
             # Incrementing current generation step
-            self.current_generation_step += 1
 
             # Displaying the information on the Loading Frame
-            self.frmLoading.update_info("Fetching solar activity images", self.current_generation_step, self.total_generation_steps)
+
             ###################
 
             # Creating solar activity object
