@@ -13,13 +13,14 @@ from datetime import datetime
 from PIL import Image
 
 from common.exceptions import NoDataFoundError
+from controller.apphandler import UPDATE_PERCENTAGE
 
 
 class ParticleFluxGraphImages():
 
     ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
     ## It that will directly build the graph images
-    def __init__(self, beginDateTime : datetime, endDateTime : datetime, dctEnergy : dict[str, bool], imageWidth : float, imageHeight : float, inputFolder : str, numberOfImages = None):
+    def __init__(self, beginDateTime : datetime, endDateTime : datetime, dctEnergy : dict[str, bool], imageWidth : float, imageHeight : float, inputFolder : str, numberOfImages = None, LoadingFrameQueue = None):
         
         # Defining attributes from parameters
         self.beginDateTime = beginDateTime

@@ -8,7 +8,7 @@ from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 
 from common.exceptions import NoDataFoundError
-
+from controller.apphandler import UPDATE_PERCENTAGE
 
 ## CONSTANTS --------------------------------------------------------------------------------------------------------- ##
 
@@ -30,7 +30,7 @@ class SolarActivityImages():
 
     ## CONSTRUCTOR --------------------------------------------------------------------------------------------------------- ##
     ## It that will directly pick the images
-    def __init__(self, beginDateTime : datetime, endDateTime : datetime, imageWidth : float, imageHeight : float, inputFolder : str):
+    def __init__(self, beginDateTime : datetime, endDateTime : datetime, imageWidth : float, imageHeight : float, inputFolder : str, loadingFrameQueue = None):
         
         # Defining attributes from parameters
         self.beginDateTime = beginDateTime
