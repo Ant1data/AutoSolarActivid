@@ -29,6 +29,11 @@ RESOLUTION_VERTICAL_HIGH = (1080, 1920)
 
 # Comment block height
 COMMENT_BLOCK_HEIGHT = 60
+
+# Signals for loading frame
+INCREMENT_STEP = 1
+DISPLAY = 2
+UPDATE_PERCENTAGE = 3
 ## ------------------------------------------------------------------------------------------------------------------- ##
 
 
@@ -371,9 +376,10 @@ class AppHandler():
         while True:
 
             # Fetching information from queue
-            (data, data) = queue.get()
+            (signal, data) = queue.get()
 
             ## TODO : Define all cases for displaying informations
+            
         
 
     # ----- Function called as a thread to generate video ----- #
@@ -396,13 +402,14 @@ class AppHandler():
             # FOR LOADING FRAME
             ###################
             # Incrementing current generation step
+            queue.put(INCREMENT_STEP, "")
 
             # Displaying the information on the Loading Frame
-
+            queue.put(DISPLAY, "Fetching solar activity images")
             ###################
 
             # Creating solar activity object
-            solar_activity_object = SolarActivityImages(self, beginDateTime=begin_datetime, endDateTime=end_datetime, imageWidth=videoDimensions["solar_activity_width"], imageHeight=videoDimensions["solar_activity_height"], inputFolder=input_folder)
+            solar_activity_object = SolarActivityImages(self, beginDateTime=begin_datetime, endDateTime=end_datetime, imageWidth=videoDimensions["solar_activity_width"], imageHeight=videoDimensions["solar_activity_height"], inputFolder=input_folder, queue=queue)
 
             # Gathering images
             solar_activity_images = solar_activity_object.images
