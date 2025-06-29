@@ -56,6 +56,10 @@ class AppHandler():
         self.frmApp = None
         self.frmLoading = None
 
+        # Creating steps variables to be displayed on the Loading Frame
+        self.current_generation_step = 0
+        self.total_generation_steps = 0
+
         # Starting a new user request
         self.newUserRequest()
 
@@ -194,28 +198,31 @@ class AppHandler():
             # ----- Launching the generation process ----- #
 
             # Defining the total number of steps to generate the video
-            total_generation_steps = 0
+            self.total_generation_steps = 0
 
             # Adding a step : Solar activity video generation
             if userRequest["btnSolarActivityVideo"]:
-                total_generation_steps += 1
+                self.total_generation_steps += 1
             
             # Adding a step : Particle flux graph images
             if userRequest["btnParticleFluxGraph"]:
-                total_generation_steps += 1
+                self.total_generation_steps += 1
             
             # Checking if some content will be generated
-            if total_generation_steps > 0:
+            if self.total_generation_steps > 0:
 
                 # Adding 2 steps (1 for combinging the images, 1 for exporting the video)
-                total_generation_steps += 2
+                self.total_generation_steps += 2
+
+                # Setting the current step to 0
+                self.current_generation_step = 0
 
                 # Creating queue to allow both videoGeneration and loadingFrame
                 # threads to communicate between each other
                 communicationQueue = Queue()
 
                 # Loading threads 
-                loadingFrameThread = Thread(target=self.handleLoadingFrame, args=(communicationQueue, total_generation_steps))
+                loadingFrameThread = Thread(target=self.handleLoadingFrame, args=(communicationQueue, self.total_generation_steps))
                 videoGenerationThread = Thread(target=self.processVideoCreation, args=(communicationQueue, userRequest, videoDimensions))
 
                 # Launching threads
@@ -375,7 +382,7 @@ class AppHandler():
         while True:
 
             # Fetching information from queue
-            (signal, data) = queue.get()
+            (signal, args) = queue.get()
 
             ## TODO : Define all cases for displaying informations
             
