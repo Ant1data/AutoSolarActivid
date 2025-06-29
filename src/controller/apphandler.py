@@ -31,9 +31,8 @@ RESOLUTION_VERTICAL_HIGH = (1080, 1920)
 COMMENT_BLOCK_HEIGHT = 60
 
 # Signals for loading frame
-INCREMENT_STEP = 1
-DISPLAY = 2
-UPDATE_PERCENTAGE = 3
+UPDATE_STEP = 1
+UPDATE_PERCENTAGE = 2
 ## ------------------------------------------------------------------------------------------------------------------- ##
 
 
