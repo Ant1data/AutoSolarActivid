@@ -9,9 +9,9 @@ class LoadingFrame(ctk.CTkFrame):
         # Percentage variable
         self.percentage = 0
 
-        # Information label
-        self.lblInfo = ctk.CTkLabel(self, text="Loading...")
-        self.lblInfo.pack(pady=10, fill='x')
+        # Step label
+        self.lblStep = ctk.CTkLabel(self, text="Loading...")
+        self.lblStep.pack(pady=10, fill='x')
 
         # Loading ProgressBar
         self.pgbLoading = ctk.CTkProgressBar(self, orientation="horizontal")
@@ -28,22 +28,22 @@ class LoadingFrame(ctk.CTkFrame):
 
     ## METHODS ------------------------------------------------------------------------------------------------------------- ##
 
-    # This function changes the information 
-    def update_info(self, new_info_content : str, current_step = None, total_steps = None):
+    # This function changes the step information 
+    def update_step(self, new_step_content : str, current_step = None, total_steps = None):
 
         # Creating the new label sentence
         new_label = ""
 
         # If the current step and max steps are defined,
-        # we insert them on the info label
+        # we insert them on the step label
         if current_step is not None and total_steps is not None:
             new_label += "Step " + str(current_step) + " of " + str(total_steps) + ": "
 
-        # Updating the new info content 
-        new_label += new_info_content
+        # Updating the new step content 
+        new_label += new_step_content
 
-        # Adding the new content on the lblInfo
-        self.lblInfo = new_label
+        # Adding the new content on the lblStep
+        self.lblStep = new_label
 
 
     
