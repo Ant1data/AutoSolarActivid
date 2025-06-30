@@ -369,7 +369,7 @@ class AppHandler():
 
 
     # ----- Function called as a thread to handle the loading frame ----- #
-    def handleLoadingFrame(self, queue, total_steps):
+    def handleLoadingFrame(self, queue):
 
         # Removing the app frame from the main_window
         self.frmApp.pack_forget()
@@ -384,8 +384,11 @@ class AppHandler():
             # Fetching information from queue
             (signal, args) = queue.get()
 
-            ## TODO : Define all cases for displaying informations
-            
+            if signal == UPDATE_STEP:
+                self.frmLoading.update_step(args)    
+
+            if signal == UPDATE_PERCENTAGE:
+                self.frmLoading.update_percentage(args)        
         
 
     # ----- Function called as a thread to generate video ----- #
