@@ -31,6 +31,7 @@ RESOLUTION_VERTICAL_HIGH = (1080, 1920)
 COMMENT_BLOCK_HEIGHT = 60
 
 # Signals for loading frame
+BREAK_LOOP = -1
 UPDATE_STEP = 1
 UPDATE_PERCENTAGE = 2
 ## ------------------------------------------------------------------------------------------------------------------- ##
@@ -81,18 +82,7 @@ class AppHandler():
         self.frmApp = AppFrame(apphandler=self, master=self.main_window, width=1200, height=1400, fg_color=("white", "gray5"))
         self.frmApp.pack()
     
-    
-    # Function to display the loading frame
-    # while treating the user's request
-    def displayLoadingFrame(self):
 
-        # Removing the app frame from the main_window
-        self.frmApp.pack_forget()
-
-        # Creating and adding the loading frame to the main_window
-        self.frmLoading = LoadingFrame(master=self.main_window, fg_color="transparent")
-        self.frmLoading.pack()
-    
 
     # Function to treat the user's request,
     # triggered by the "Generate" button
@@ -118,7 +108,7 @@ class AppHandler():
                 # High resolution
                 elif userRequest["Quality"] == "High (1080p)":
                     
-                    video_width, video_height = RESOLUTION_VERTICAL_HIGH
+                    video_width, video_height =  RESOLUTION_VERTICAL_HIGH
 
             # Horizontal image
             elif userRequest["Format"] == "YouTube (horizontal)":
@@ -369,7 +359,7 @@ class AppHandler():
 
 
     # ----- Function called as a thread to handle the loading frame ----- #
-    def handleLoadingFrame(self, queue):
+    def handleLoadingFrame(self, queue : Queue):
 
         # Removing the app frame from the main_window
         self.frmApp.pack_forget()
@@ -387,12 +377,22 @@ class AppHandler():
             if signal == UPDATE_STEP:
                 self.frmLoading.update_step(args)    
 
-            if signal == UPDATE_PERCENTAGE:
-                self.frmLoading.update_percentage(args)        
-        
+            elif signal == UPDATE_PERCENTAGE:
+                self.frmLoading.update_percentage(args)   
+                 
+            elif signal == BREAK_LOOP:
+                # Temporary 
+                self.frmLoading.update_percentage(1, 1)
+                self.frmLoading.update_step("Done!")
+
+                # Indicating that the queue has done its work
+                queue.task_done()
+                break
+
+
 
     # ----- Function called as a thread to generate video ----- #
-    def processVideoCreation(self, queue, userRequest, videoDimensions):
+    def processVideoCreation(self, queue : Queue, userRequest : dict[str, any], videoDimensions: dict[str, int]):
 
         # ----- Creating images objects ----- #
 
@@ -411,10 +411,10 @@ class AppHandler():
             # FOR LOADING FRAME
             ###################
             # Incrementing current generation step
-            queue.put(INCREMENT_STEP, "")
+            self.current_generation_step += 1
 
             # Displaying the information on the Loading Frame
-            queue.put(DISPLAY, "Fetching solar activity images")
+            queue.put(UPDATE_STEP, ("Fetching solar activity images", self.current_generation_step, self.total_generation_steps))
             ###################
 
             # Creating solar activity object
@@ -432,7 +432,7 @@ class AppHandler():
             self.current_generation_step += 1
 
             # Displaying the information on the Loading Frame
-            self.frmLoading.update_info("Generating particle flux graph images", self.current_generation_step, self.total_generation_steps)
+            queue.put(UPDATE_STEP, ("Generating particle flux graph images", self.current_generation_step, self.total_generation_steps))
             ###################
 
             # Considering that there are always less solar activity
@@ -459,7 +459,7 @@ class AppHandler():
         self.current_generation_step += 1
 
         # Displaying the information on the Loading Frame
-        self.frmLoading.update_info("Combining images", self.current_generation_step, self.total_generation_steps)
+        queue.put(UPDATE_STEP, ("Combining images", self.current_generation_step, self.total_generation_steps))
         ###################
 
         # Defining the video format (horizontal/vertical)
@@ -503,16 +503,16 @@ class AppHandler():
         self.current_generation_step += 1
 
         # Displaying the information on the Loading Frame
-        self.frmLoading.update_info("Exporting video", self.current_generation_step, self.total_generation_steps)
+        queue.put(UPDATE_STEP, ("Exporting video", self.current_generation_step, self.total_generation_steps))
         ###################
 
-        self.generateVideo(final_images, video_name=video_name, video_width=videoDimensions["video_width"], video_height=videoDimensions["video_height"], output_folder=userRequest["OutputFolder"])
+        self.generateVideo(final_images, video_name=video_name, video_width=videoDimensions["video_width"], video_height=videoDimensions["video_height"], output_folder=userRequest["OutputFolder"], loadingFrameQueue=queue)
         # ------------------------------- #
 
     
         
     # ----- Image combination algorithm ----- #
-    def combineImages(self, solar_activity_images : list, particles_graph_images : list, video_width : int, video_height : int, format : str, comment = ""):
+    def combineImages(self, solar_activity_images : list, particles_graph_images : list, video_width : int, video_height : int, format : str, comment = "", loadingFrameQueue = None):
 
         # For debug 
         print("Combining images")
@@ -647,7 +647,7 @@ class AppHandler():
                 final_images.append(new_image_byte)
 
                 # --- Increasing percentage on loading frame --- #
-                self.frmLoading.update_percentage(image_index+1, number_of_images)
+                loadingFrameQueue.put(UPDATE_PERCENTAGE, (image_index+1, number_of_images))
                 # ---------------------------------------------- #
         
 
@@ -695,7 +695,7 @@ class AppHandler():
                 final_images.append(new_image_byte)
 
                 # --- Increasing percentage on loading frame --- #
-                self.frmLoading.update_percentage(image_index+1, number_of_images)
+                loadingFrameQueue.put(UPDATE_PERCENTAGE, (image_index+1, number_of_images))
                 # ---------------------------------------------- #     
 
 
@@ -706,7 +706,7 @@ class AppHandler():
 
 
     # ----- Video generation algorithm ----- #
-    def generateVideo(self, frame_list, video_name, video_width, video_height, output_folder : str):
+    def generateVideo(self, frame_list, video_name, video_width, video_height, output_folder : str, loadingFrameQueue = None):
 
         # Saving previous working directory
         previous_working_directory = os.getcwd()
@@ -738,7 +738,7 @@ class AppHandler():
             counter += 1
 
             # --- Increasing percentage on loading frame --- #
-            self.frmLoading.update_percentage(counter, number_of_images)
+            loadingFrameQueue.put(UPDATE_PERCENTAGE, (counter, number_of_images))
             # ---------------------------------------------- #
 
         # Exporting video

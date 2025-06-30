@@ -38,6 +38,8 @@ class SolarActivityImages():
         self.imageWidth = imageWidth
         self.imageHeight = imageHeight
         self.inputFolder = inputFolder
+        self.loadingFrameQueue = loadingFrameQueue
+
 
         # Defining the list of images
         self.images = []
@@ -161,8 +163,8 @@ class SolarActivityImages():
             self.images.append(current_image_byte)
 
             # --- Increasing percentage on loading frame --- #
-            # current_step += 1
-            # self.appHandler.frmLoading.update_percentage(current_step, total_steps)
+            current_step += 1
+            self.loadingFrameQueue.put(UPDATE_PERCENTAGE, (current_step, total_steps))
             # ---------------------------------------------- #
         
         # Resetting working directory to the previous one
