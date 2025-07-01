@@ -12,8 +12,8 @@ import sys
 from datetime import datetime
 from PIL import Image
 
+from common.constants import UPDATE_PERCENTAGE
 from common.exceptions import NoDataFoundError
-from controller.apphandler import UPDATE_PERCENTAGE
 
 
 class ParticleFluxGraphImages():

@@ -7,8 +7,8 @@ import os
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 
+from common.constants import UPDATE_PERCENTAGE
 from common.exceptions import NoDataFoundError
-from controller.apphandler import UPDATE_PERCENTAGE
 
 ## CONSTANTS --------------------------------------------------------------------------------------------------------- ##
 
