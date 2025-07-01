@@ -450,7 +450,7 @@ class AppHandler():
             format = HORIZONTAL
 
         # Combining the different kind of images, with the comment if necessary
-        final_images = self.combineImages(solar_activity_images, particle_graph_images, videoDimensions["video_width"], videoDimensions["video_height"], format, userRequest["Comment"])
+        final_images = self.combineImages(solar_activity_images, particle_graph_images, videoDimensions["video_width"], videoDimensions["video_height"], format, userRequest["Comment"], queue)
         # ----------------------------------------------------- #
 
         # ----- Defining video name ----- #
