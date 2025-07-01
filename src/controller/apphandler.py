@@ -212,8 +212,8 @@ class AppHandler():
                 communicationQueue = Queue()
 
                 # Loading threads 
-                loadingFrameThread = Thread(target=self.handleLoadingFrame, args=(communicationQueue, self.total_generation_steps))
-                videoGenerationThread = Thread(target=self.processVideoCreation, args=(communicationQueue, userRequest, videoDimensions))
+                loadingFrameThread = Thread(target=self.handleLoadingFrame, kwargs={"queue" : communicationQueue})
+                videoGenerationThread = Thread(target=self.processVideoCreation, kwargs={"queue" : communicationQueue, "userRequest" : userRequest, "videoDimensions" : videoDimensions})
 
                 # Launching threads
                 loadingFrameThread.start()
@@ -359,7 +359,7 @@ class AppHandler():
 
 
     # ----- Function called as a thread to handle the loading frame ----- #
-    def handleLoadingFrame(self, queue : Queue):
+    def handleLoadingFrame(self, queue: Queue):
 
         # Removing the app frame from the main_window
         self.frmApp.pack_forget()
@@ -392,7 +392,7 @@ class AppHandler():
 
 
     # ----- Function called as a thread to generate video ----- #
-    def processVideoCreation(self, queue : Queue, userRequest : dict[str, any], videoDimensions: dict[str, int]):
+    def processVideoCreation(self, queue: Queue, userRequest: dict[str, any], videoDimensions: dict[str, int]):
 
         # ----- Creating images objects ----- #
 
@@ -418,7 +418,7 @@ class AppHandler():
             ###################
 
             # Creating solar activity object
-            solar_activity_object = SolarActivityImages(self, beginDateTime=begin_datetime, endDateTime=end_datetime, imageWidth=videoDimensions["solar_activity_width"], imageHeight=videoDimensions["solar_activity_height"], inputFolder=input_folder, queue=queue)
+            solar_activity_object = SolarActivityImages(beginDateTime=begin_datetime, endDateTime=end_datetime, imageWidth=videoDimensions["solar_activity_width"], imageHeight=videoDimensions["solar_activity_height"], inputFolder=input_folder, loadingFrameQueue=queue)
 
             # Gathering images
             solar_activity_images = solar_activity_object.images
@@ -445,7 +445,7 @@ class AppHandler():
                 number_of_images = len(solar_activity_images)
 
             # Creating particle flux graph object
-            particle_graph_object = ParticleFluxGraphImages(self, beginDateTime=begin_datetime, endDateTime=end_datetime, dctEnergy=userRequest["EnergyData"], imageWidth=videoDimensions["particle_graph_width"], imageHeight=videoDimensions["particle_graph_height"], numberOfImages=number_of_images, inputFolder=input_folder)
+            particle_graph_object = ParticleFluxGraphImages(beginDateTime=begin_datetime, endDateTime=end_datetime, dctEnergy=userRequest["EnergyData"], imageWidth=videoDimensions["particle_graph_width"], imageHeight=videoDimensions["particle_graph_height"], numberOfImages=number_of_images, inputFolder=input_folder, loadingFrameQueue=queue)
 
             # Gathering images
             particle_graph_images = particle_graph_object.images
