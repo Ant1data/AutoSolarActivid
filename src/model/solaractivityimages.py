@@ -164,7 +164,10 @@ class SolarActivityImages():
 
             # --- Increasing percentage on loading frame --- #
             current_step += 1
-            self.loadingFrameQueue.put(UPDATE_PERCENTAGE, (current_step, total_steps))
+            self.loadingFrameQueue.put((UPDATE_PERCENTAGE, {
+                "current_step": current_step,
+                "total_steps": total_steps
+            }))
             # ---------------------------------------------- #
         
         # Resetting working directory to the previous one

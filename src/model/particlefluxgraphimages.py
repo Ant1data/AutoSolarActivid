@@ -397,7 +397,10 @@ class ParticleFluxGraphImages():
             # --------------------------------- #
 
             # --- Increasing percentage on loading frame --- #
-            self.loadingFrameQueue.put(UPDATE_PERCENTAGE, (line_index, number_of_images))
+            self.loadingFrameQueue.put((UPDATE_PERCENTAGE, {
+                "current_step": line_index,
+                "total_steps": number_of_images
+            }))
             # ---------------------------------------------- #
 
         ## ----------------------------------- #

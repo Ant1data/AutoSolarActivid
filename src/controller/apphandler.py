@@ -355,43 +355,43 @@ class AppHandler():
         # ---------------------------------- #
 
         # ----- Exceptions handling ----- #
-        except Exception as e:
+        # except Exception as e:
 
-            # Creating a message box
-            tkm.showerror(title="Error", message=str(e), )
+        #     # Creating a message box
+        #     tkm.showerror(title="Error", message=str(e), )
 
 
 
     # ----- Function called as a thread to handle the loading frame ----- #
-    def handleLoadingFrame(self, queue: Queue):
+    # def handleLoadingFrame(self, queue: Queue):
 
-        # Removing the app frame from the main_window
-        self.frmApp.pack_forget()
+    #     # Removing the app frame from the main_window
+    #     self.frmApp.pack_forget()
 
-        # Creating and adding the loading frame to the main_window
-        self.frmLoading = LoadingFrame(master=self.main_window, fg_color="transparent")
-        self.frmLoading.pack()
+    #     # Creating and adding the loading frame to the main_window
+    #     self.frmLoading = LoadingFrame(master=self.main_window, fg_color="transparent")
+    #     self.frmLoading.pack()
 
-        # Repeating until the final signal is raised
-        while True:
+    #     # Repeating until the final signal is raised
+    #     while True:
 
-            # Fetching information from queue
-            (signal, args) = queue.get()
+    #         # Fetching information from queue
+    #         (signal, args) = queue.get()
 
-            if signal == UPDATE_STEP:
-                self.frmLoading.update_step(args)    
+    #         if signal == UPDATE_STEP:
+    #             self.frmLoading.update_step(args)    
 
-            elif signal == UPDATE_PERCENTAGE:
-                self.frmLoading.update_percentage(args)   
+    #         elif signal == UPDATE_PERCENTAGE:
+    #             self.frmLoading.update_percentage(args)   
                  
-            elif signal == BREAK_LOOP:
-                # Temporary 
-                self.frmLoading.update_percentage(1, 1)
-                self.frmLoading.update_step("Done!")
+    #         elif signal == BREAK_LOOP:
+    #             # Temporary 
+    #             self.frmLoading.update_percentage(1, 1)
+    #             self.frmLoading.update_step("Done!")
 
-                # Indicating that the queue has done its work
-                queue.task_done()
-                break
+    #             # Indicating that the queue has done its work
+    #             queue.task_done()
+    #             break
 
 
 
@@ -418,7 +418,11 @@ class AppHandler():
             self.current_generation_step += 1
 
             # Displaying the information on the Loading Frame
-            queue.put(UPDATE_STEP, ("Fetching solar activity images", self.current_generation_step, self.total_generation_steps))
+            queue.put((UPDATE_STEP, {
+                "new_step_content": "Fetching solar activity images",
+                "current_step": self.current_generation_step,
+                "total_steps": self.total_generation_steps
+            }))
             ###################
 
             # Creating solar activity object
@@ -436,7 +440,11 @@ class AppHandler():
             self.current_generation_step += 1
 
             # Displaying the information on the Loading Frame
-            queue.put(UPDATE_STEP, ("Generating particle flux graph images", self.current_generation_step, self.total_generation_steps))
+            queue.put((UPDATE_STEP, {
+                "new_step_content": "Generating particle flux graph images",
+                "current_step": self.current_generation_step,
+                "total_steps": self.total_generation_steps
+            }))
             ###################
 
             # Considering that there are always less solar activity
@@ -463,7 +471,11 @@ class AppHandler():
         self.current_generation_step += 1
 
         # Displaying the information on the Loading Frame
-        queue.put(UPDATE_STEP, ("Combining images", self.current_generation_step, self.total_generation_steps))
+        queue.put((UPDATE_STEP, {
+                "new_step_content": "Combining images",
+                "current_step": self.current_generation_step,
+                "total_steps": self.total_generation_steps
+            }))
         ###################
 
         # Defining the video format (horizontal/vertical)
@@ -507,7 +519,11 @@ class AppHandler():
         self.current_generation_step += 1
 
         # Displaying the information on the Loading Frame
-        queue.put(UPDATE_STEP, ("Exporting video", self.current_generation_step, self.total_generation_steps))
+        queue.put((UPDATE_STEP, {
+                "new_step_content": "Exporting video",
+                "current_step": self.current_generation_step,
+                "total_steps": self.total_generation_steps
+            }))
         ###################
 
         self.generateVideo(final_images, video_name=video_name, video_width=videoDimensions["video_width"], video_height=videoDimensions["video_height"], output_folder=userRequest["OutputFolder"], loadingFrameQueue=queue)
@@ -575,7 +591,7 @@ class AppHandler():
         # We take the first image of both image types as a reference
     
         # Case for solar activity image
-        if len(solar_activity_images) > 0:
+        if len(solar_activity_images) > 0: 
             image_reference = Image.open(solar_activity_images[0])
             solar_activity_width = image_reference.width
             solar_activity_height = image_reference.height
@@ -651,7 +667,10 @@ class AppHandler():
                 final_images.append(new_image_byte)
 
                 # --- Increasing percentage on loading frame --- #
-                loadingFrameQueue.put(UPDATE_PERCENTAGE, (image_index+1, number_of_images))
+                loadingFrameQueue.put((UPDATE_PERCENTAGE, {
+                    "current_step": image_index+1,
+                    "total_steps": number_of_images
+                }))
                 # ---------------------------------------------- #
         
 
@@ -699,7 +718,10 @@ class AppHandler():
                 final_images.append(new_image_byte)
 
                 # --- Increasing percentage on loading frame --- #
-                loadingFrameQueue.put(UPDATE_PERCENTAGE, (image_index+1, number_of_images))
+                loadingFrameQueue.put((UPDATE_PERCENTAGE, {
+                    "current_step": image_index+1,
+                    "total_steps": number_of_images
+                }))
                 # ---------------------------------------------- #     
 
 
@@ -742,7 +764,10 @@ class AppHandler():
             counter += 1
 
             # --- Increasing percentage on loading frame --- #
-            loadingFrameQueue.put(UPDATE_PERCENTAGE, (counter, number_of_images))
+            loadingFrameQueue.put((UPDATE_PERCENTAGE, {
+                    "current_step": counter,
+                    "total_steps": number_of_images
+                }))
             # ---------------------------------------------- #
 
         # Exporting video
