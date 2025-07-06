@@ -42,8 +42,8 @@ class LoadingFrame(ctk.CTkFrame):
         # Updating the new step content 
         new_label += new_step_content
 
-        # Adding the new content on the lblStep
-        self.lblStep = new_label
+        # Updating the lblStep content
+        self.lblStep.configure(text=new_label)
 
 
     
@@ -56,4 +56,5 @@ class LoadingFrame(ctk.CTkFrame):
         self.pgbLoading.set(current_step/total_steps)
 
         # Updating Percentage label
-        self.lblPercentage._text = str(int((current_step/total_steps)*100)) + "%"
+        new_label = str(int((current_step/total_steps)*100)) + "%"
+        self.lblPercentage.configure(text=new_label)
