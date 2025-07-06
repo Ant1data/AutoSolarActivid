@@ -68,144 +68,169 @@ class AppHandler():
     def treatUserRequest(self, userRequest: dict[str, any]):
         
         ## ---------- Defining the properties of the video to be generated ---------- ##
-        try:
+        # try:
 
-            # For debug 
-            print(userRequest)
+        # For debug 
+        print(userRequest)
+        
+        # ----- Video format and quality ----- #
+        video_width, video_height = 0, 0
+
+        # Vertical image
+        if userRequest["Format"] == "Instagram (vertical)":
             
-            # ----- Video format and quality ----- #
-            video_width, video_height = 0, 0
+            # Medium resolution
+            if userRequest["Quality"] == "Medium (720p)":
+                
+                video_width, video_height = RESOLUTION_VERTICAL_MED
+            
+            # High resolution
+            elif userRequest["Quality"] == "High (1080p)":
+                
+                video_width, video_height =  RESOLUTION_VERTICAL_HIGH
 
-            # Vertical image
+        # Horizontal image
+        elif userRequest["Format"] == "YouTube (horizontal)":
+            
+            # Medium resolution
+            if userRequest["Quality"] == "Medium (720p)":
+                
+                video_width, video_height = RESOLUTION_HORIZONTAL_MED
+            
+            # High resolution
+            elif userRequest["Quality"] == "High (1080p)":
+                
+                video_width, video_height = RESOLUTION_HORIZONTAL_HIGH
+
+        # ------------------------------------ #
+
+
+        # ----- Image types resolution ----- #
+
+        # Resolution for solar activity (video's resolution by default)
+        solar_activity_width, solar_activity_height = video_width, video_height
+
+        # Resolution for particle flux graphs (video's resolution by default)
+        particle_graph_width, particle_graph_height = video_width, video_height
+
+
+        # Dividing the width/height by 2 when both videos are selected
+        if userRequest["btnSolarActivityVideo"] and userRequest["btnParticleFluxGraph"]:
+            
+            # --------------- For vertical video --------------- #
             if userRequest["Format"] == "Instagram (vertical)":
-                
-                # Medium resolution
-                if userRequest["Quality"] == "Medium (720p)":
-                    
-                    video_width, video_height = RESOLUTION_VERTICAL_MED
-                
-                # High resolution
-                elif userRequest["Quality"] == "High (1080p)":
-                    
-                    video_width, video_height =  RESOLUTION_VERTICAL_HIGH
 
-            # Horizontal image
+                # Dividing image height by 2
+                solar_activity_height = solar_activity_height/2
+                particle_graph_height = particle_graph_height/2
+            
+            # -------------- For horizontal video -------------- #
             elif userRequest["Format"] == "YouTube (horizontal)":
-                
-                # Medium resolution
-                if userRequest["Quality"] == "Medium (720p)":
+
+                # Dividing image width by 2
+                solar_activity_width = solar_activity_width/2
+                particle_graph_width = particle_graph_width/2
+
+            # -------------------------------------------------- #
+        
+        # Reducing the height of the resolutions when a comment is written,
+        # in order to let space on the screen for the comment
+        if len(userRequest["Comment"]) != 0:
+            
+            # Case for vertical video with the two types of videos
+            if userRequest["Format"] == "Instagram (vertical)" and userRequest["btnSolarActivityVideo"] and userRequest["btnParticleFluxGraph"]:
+
+                solar_activity_height -= COMMENT_BLOCK_HEIGHT/2
+                particle_graph_height -= COMMENT_BLOCK_HEIGHT/2
+            
+            # Other cases
+            else:
+                solar_activity_height -= COMMENT_BLOCK_HEIGHT
+                particle_graph_height -= COMMENT_BLOCK_HEIGHT
+        
+        # Initializing dictionary for video images dimensions
+        videoDimensions = {}
+        
+        # Filling the data
+        videoDimensions["video_width"], videoDimensions["video_height"] = int(video_width), int(video_height)
+        videoDimensions["solar_activity_width"], videoDimensions["solar_activity_height"] = int(solar_activity_width), int(solar_activity_height)
+        videoDimensions["particle_graph_width"], videoDimensions["particle_graph_height"] = int(particle_graph_width), int(particle_graph_height)
+
+        # For debug : Displaying the resolutions
+        print("Video resolution :", video_width, "x", video_height)
+        print("Solar activity resolution :", solar_activity_width, "x", solar_activity_height)
+        print("Particle flux graph resolution :", particle_graph_width, "x", particle_graph_height)
+
+        # ---------------------------------- #
+
+
+        # ----- Launching the generation process ----- #
+
+        # Defining the total number of steps to generate the video
+        self.total_generation_steps = 0
+
+        # Adding a step : Solar activity video generation
+        if userRequest["btnSolarActivityVideo"]:
+            self.total_generation_steps += 1
+        
+        # Adding a step : Particle flux graph images
+        if userRequest["btnParticleFluxGraph"]:
+            self.total_generation_steps += 1
+        
+        # Checking if some content will be generated
+        if self.total_generation_steps > 0:
+
+            # Adding 2 steps (1 for combinging the images, 1 for exporting the video)
+            self.total_generation_steps += 2
+
+            # Setting the current step to 0
+            self.current_generation_step = 0
+
+            # Creating queue to allow both videoGenerationThread
+            # and main thread to communicate between each other
+            communicationQueue = Queue()
+
+            # Loading thread 
+            videoGenerationThread = Thread(target=self.processVideoCreation, kwargs={"queue" : communicationQueue, "userRequest" : userRequest, "videoDimensions" : videoDimensions})
+
+            # Launching videthread
+            videoGenerationThread.start()
+
+            # Removing the app frame from the main_window
+            self.frmApp.pack_forget()
+
+            # Creating and adding the loading frame to the main_window
+            self.frmLoading = LoadingFrame(master=self.main_window, fg_color="transparent")
+            self.frmLoading.pack()
+
+            # Repeating until the final signal is raised
+            while True:
+
+                # Fetching information from queue
+                (signal, kwargs) = communicationQueue.get()
+
+                # For debug
+
+                if signal == UPDATE_STEP:
+                    self.frmLoading.update_step(**kwargs)    
+
+                elif signal == UPDATE_PERCENTAGE:
+                    self.frmLoading.update_percentage(**kwargs)   
                     
-                    video_width, video_height = RESOLUTION_HORIZONTAL_MED
-                
-                # High resolution
-                elif userRequest["Quality"] == "High (1080p)":
-                    
-                    video_width, video_height = RESOLUTION_HORIZONTAL_HIGH
+                elif signal == BREAK_LOOP:
+                    # Temporary 
+                    self.frmLoading.update_percentage(1, 1)
+                    self.frmLoading.update_step("Done!")
 
-            # ------------------------------------ #
+                    # Indicating that the queue has done its work
+                    communicationQueue.task_done()
+                    break
 
+            # Waiting the queue's job to be done
+            communicationQueue.join()
 
-            # ----- Image types resolution ----- #
-
-            # Resolution for solar activity (video's resolution by default)
-            solar_activity_width, solar_activity_height = video_width, video_height
-
-            # Resolution for particle flux graphs (video's resolution by default)
-            particle_graph_width, particle_graph_height = video_width, video_height
-
-
-            # Dividing the width/height by 2 when both videos are selected
-            if userRequest["btnSolarActivityVideo"] and userRequest["btnParticleFluxGraph"]:
-                
-                # --------------- For vertical video --------------- #
-                if userRequest["Format"] == "Instagram (vertical)":
-
-                    # Dividing image height by 2
-                    solar_activity_height = solar_activity_height/2
-                    particle_graph_height = particle_graph_height/2
-                
-                # -------------- For horizontal video -------------- #
-                elif userRequest["Format"] == "YouTube (horizontal)":
-
-                    # Dividing image width by 2
-                    solar_activity_width = solar_activity_width/2
-                    particle_graph_width = particle_graph_width/2
-
-                # -------------------------------------------------- #
-            
-            # Reducing the height of the resolutions when a comment is written,
-            # in order to let space on the screen for the comment
-            if len(userRequest["Comment"]) != 0:
-                
-                # Case for vertical video with the two types of videos
-                if userRequest["Format"] == "Instagram (vertical)" and userRequest["btnSolarActivityVideo"] and userRequest["btnParticleFluxGraph"]:
-
-                    solar_activity_height -= COMMENT_BLOCK_HEIGHT/2
-                    particle_graph_height -= COMMENT_BLOCK_HEIGHT/2
-                
-                # Other cases
-                else:
-                    solar_activity_height -= COMMENT_BLOCK_HEIGHT
-                    particle_graph_height -= COMMENT_BLOCK_HEIGHT
-            
-            # Initializing dictionary for video images dimensions
-            videoDimensions = {}
-            
-            # Filling the data
-            videoDimensions["video_width"], videoDimensions["video_height"] = int(video_width), int(video_height)
-            videoDimensions["solar_activity_width"], videoDimensions["solar_activity_height"] = int(solar_activity_width), int(solar_activity_height)
-            videoDimensions["particle_graph_width"], videoDimensions["particle_graph_height"] = int(particle_graph_width), int(particle_graph_height)
-
-            # For debug : Displaying the resolutions
-            print("Video resolution :", video_width, "x", video_height)
-            print("Solar activity resolution :", solar_activity_width, "x", solar_activity_height)
-            print("Particle flux graph resolution :", particle_graph_width, "x", particle_graph_height)
-
-            # ---------------------------------- #
-
-
-            # ----- Launching the generation process ----- #
-
-            # Defining the total number of steps to generate the video
-            self.total_generation_steps = 0
-
-            # Adding a step : Solar activity video generation
-            if userRequest["btnSolarActivityVideo"]:
-                self.total_generation_steps += 1
-            
-            # Adding a step : Particle flux graph images
-            if userRequest["btnParticleFluxGraph"]:
-                self.total_generation_steps += 1
-            
-            # Checking if some content will be generated
-            if self.total_generation_steps > 0:
-
-                # Adding 2 steps (1 for combinging the images, 1 for exporting the video)
-                self.total_generation_steps += 2
-
-                # Setting the current step to 0
-                self.current_generation_step = 0
-
-                # Creating queue to allow both videoGeneration and loadingFrame
-                # threads to communicate between each other
-                communicationQueue = Queue()
-
-                # Loading threads 
-                loadingFrameThread = Thread(target=self.handleLoadingFrame, kwargs={"queue" : communicationQueue})
-                videoGenerationThread = Thread(target=self.processVideoCreation, kwargs={"queue" : communicationQueue, "userRequest" : userRequest, "videoDimensions" : videoDimensions})
-
-                # Launching threads
-                loadingFrameThread.start()
-                videoGenerationThread.start()
-
-                # Here, both threads are supposed to be working...
-
-                # Waiting the queue's job to be done
-                communicationQueue.join()
-
-                # Shutting down the threads
-                loadingFrameThread.join()
-                videoGenerationThread.join()
+            # Shutting down the threads
+            videoGenerationThread.join()
 
                 
 
