@@ -3,11 +3,11 @@ import cv2
 import io
 import numpy as np
 import os
+import queue
 import tkinter.messagebox as tkm
 
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
-from queue import Queue
 from threading import Thread
 
 from common.constants import *
@@ -39,6 +39,11 @@ class AppHandler():
         # Creating steps variables to be displayed on the Loading Frame
         self.current_generation_step = 0
         self.total_generation_steps = 0
+
+        # Creating queue to allow both videoGenerationThread
+        # and main thread to communicate between each other
+        self.communicationQueue = None
+        self.isQueueInUse = False
 
         # Starting a new user request
         self.newUserRequest()
@@ -186,12 +191,12 @@ class AppHandler():
             # Setting the current step to 0
             self.current_generation_step = 0
 
-            # Creating queue to allow both videoGenerationThread
-            # and main thread to communicate between each other
-            communicationQueue = Queue()
+            # Allowing the queue to be used
+            self.communicationQueue = queue.Queue()
+            self.isQueueInUse = True
 
             # Loading thread 
-            videoGenerationThread = Thread(target=self.processVideoCreation, kwargs={"queue" : communicationQueue, "userRequest" : userRequest, "videoDimensions" : videoDimensions})
+            videoGenerationThread = Thread(target=self.processVideoCreation, kwargs={"queue" : self.communicationQueue, "userRequest" : userRequest, "videoDimensions" : videoDimensions})
 
             # Launching videthread
             videoGenerationThread.start()
@@ -203,200 +208,57 @@ class AppHandler():
             self.frmLoading = LoadingFrame(master=self.main_window, fg_color="transparent")
             self.frmLoading.pack()
 
-            # Repeating until the final signal is raised
+            # Treating every element in the queue
+            self.treatQueue()
+
+            # -------------------------------------------- #
+
+
+
+    # ----- Function to treat every information in the queue ----- #
+    def treatQueue(self):
+        try:
+            # Repeating until the BREAK_LOOP signal is raised
+            # Or the Exception Queue.empty is raised
             while True:
 
-                # Fetching information from queue
-                (signal, kwargs) = communicationQueue.get()
+                # Fetching information from queue, until it gets empty
+                # and returns an Exception
+                (signal, kwargs) = self.communicationQueue.get_nowait()
 
-                # For debug
-
+                # For updating the step
                 if signal == UPDATE_STEP:
                     self.frmLoading.update_step(**kwargs)    
 
+                # For updating the percentage
                 elif signal == UPDATE_PERCENTAGE:
                     self.frmLoading.update_percentage(**kwargs)   
-                    
+                
+                # For breaking the loop
                 elif signal == BREAK_LOOP:
                     # Temporary 
                     self.frmLoading.update_percentage(1, 1)
                     self.frmLoading.update_step("Done!")
 
                     # Indicating that the queue has done its work
-                    communicationQueue.task_done()
-                    break
+                    self.communicationQueue.task_done()
+                    self.isQueueInUse = False
 
-            # Waiting the queue's job to be done
-            communicationQueue.join()
-
-            # Shutting down the threads
-            videoGenerationThread.join()
-
+                    return
+            
+                self.communicationQueue.task_done()
                 
-
-            # -------------------------------------------- #
-            
-
-            # # ----- Creating images objects ----- #
-
-            # # Getting common userRequest data
-            # begin_datetime = userRequest["BeginDatetime"]
-            # end_datetime = userRequest["EndDatetime"]
-            # input_folder = userRequest["InputFolder"]
-
-            # # Creating lists of images
-            # solar_activity_images = []
-            # particle_graph_images = []
-
-            # # Solar activity
-            # if userRequest["btnSolarActivityVideo"]:
-
-            #     # FOR LOADING FRAME
-            #     ###################
-            #     # Incrementing current generation step
-            #     self.current_generation_step += 1
-
-            #     # Displaying the information on the Loading Frame
-            #     self.frmLoading.update_info("Fetching solar activity images", self.current_generation_step, self.total_generation_steps)
-            #     ###################
-
-            #     # Creating solar activity object
-            #     solar_activity_object = SolarActivityImages(self, beginDateTime=begin_datetime, endDateTime=end_datetime, imageWidth=solar_activity_width, imageHeight=solar_activity_height, inputFolder=input_folder)
-
-            #     # Gathering images
-            #     solar_activity_images = solar_activity_object.images
-            
-            # # Particle flux graph
-            # if userRequest["btnParticleFluxGraph"]:
-
-            #     # FOR LOADING FRAME
-            #     ###################
-            #     # Incrementing current generation step
-            #     self.current_generation_step += 1
-
-            #     # Displaying the information on the Loading Frame
-            #     self.frmLoading.update_info("Generating particle flux graph images", self.current_generation_step, self.total_generation_steps)
-            #     ###################
-
-            #     # Considering that there are always less solar activity
-            #     # images than particle flux graph images, if the solar
-            #     # activity option is selected, we set the number of solar
-            #     # activity images as the minimum number of video's frames
-            #     number_of_images = None
-
-            #     if len(solar_activity_images) > 0:
-            #         number_of_images = len(solar_activity_images)
-
-            #     # Creating particle flux graph object
-            #     particle_graph_object = ParticleFluxGraphImages(self, beginDateTime=begin_datetime, endDateTime=end_datetime, dctEnergy=userRequest["EnergyData"], imageWidth=particle_graph_width, imageHeight=particle_graph_height, numberOfImages=number_of_images, inputFolder=input_folder)
-
-            #     # Gathering images
-            #     particle_graph_images = particle_graph_object.images
-            # # ----------------------------------- #
-
-            # # ----- Combining different images (with comment) ----- #
-
-            # # FOR LOADING FRAME
-            # ###################
-            # # Incrementing current generation step
-            # self.current_generation_step += 1
-
-            # # Displaying the information on the Loading Frame
-            # self.frmLoading.update_info("Combining images", self.current_generation_step, self.total_generation_steps)
-            # ###################
-
-            # # Defining the video format (horizontal/vertical)
-            # format = ""
-
-            # if userRequest["Format"] == "Instagram (vertical)":
-            #     format = VERTICAL
-            # elif userRequest["Format"] == "YouTube (horizontal)":
-            #     format = HORIZONTAL
-
-            # # Combining the different kind of images, with the comment if necessary
-            # final_images = self.combineImages(solar_activity_images, particle_graph_images, video_width, video_height, format, userRequest["Comment"])
-            # # ----------------------------------------------------- #
-
-            # # ----- Defining video name ----- #
-            # video_name = "SolarActivid"
-
-            # # Adding selected video types
-            # if userRequest["btnSolarActivityVideo"]:
-            #     video_name += "_SA"
-            
-            # if userRequest["btnParticleFluxGraph"]:
-            #     video_name += "_PFG"
-            
-            # # Adding Begin Datetime
-            # video_name += datetime.strftime(userRequest["BeginDatetime"], "_%Y%m%d_%H%M%S")
-            
-            # # Adding End Datetime
-            # video_name += datetime.strftime(userRequest["EndDatetime"], "_%Y%m%d_%H%M%S")
-            
-            # # Adding .mp4
-            # video_name += ".mp4"
-
-            # # ------------------------------- #
-
-            # # ----- Exporting the video ----- #
-
-            # # FOR LOADING FRAME
-            # ###################
-            # # Incrementing current generation step
-            # self.current_generation_step += 1
-
-            # # Displaying the information on the Loading Frame
-            # self.frmLoading.update_info("Exporting video", self.current_generation_step, self.total_generation_steps)
-            # ###################
-
-            # self.generateVideo(final_images, video_name=video_name, video_width=video_width, video_height=video_height, output_folder=userRequest["OutputFolder"])
-            # # ------------------------------- #
+        except queue.Empty:
+            pass
         
-        # ---------------------------------- #
-
-        # ----- Exceptions handling ----- #
-        # except Exception as e:
-
-        #     # Creating a message box
-        #     tkm.showerror(title="Error", message=str(e), )
-
-
-
-    # ----- Function called as a thread to handle the loading frame ----- #
-    # def handleLoadingFrame(self, queue: Queue):
-
-    #     # Removing the app frame from the main_window
-    #     self.frmApp.pack_forget()
-
-    #     # Creating and adding the loading frame to the main_window
-    #     self.frmLoading = LoadingFrame(master=self.main_window, fg_color="transparent")
-    #     self.frmLoading.pack()
-
-    #     # Repeating until the final signal is raised
-    #     while True:
-
-    #         # Fetching information from queue
-    #         (signal, args) = queue.get()
-
-    #         if signal == UPDATE_STEP:
-    #             self.frmLoading.update_step(args)    
-
-    #         elif signal == UPDATE_PERCENTAGE:
-    #             self.frmLoading.update_percentage(args)   
-                 
-    #         elif signal == BREAK_LOOP:
-    #             # Temporary 
-    #             self.frmLoading.update_percentage(1, 1)
-    #             self.frmLoading.update_step("Done!")
-
-    #             # Indicating that the queue has done its work
-    #             queue.task_done()
-    #             break
+        # Recalling the function after 100 ms
+        if self.isQueueInUse:
+            self.main_window.after(100, self.treatQueue)
 
 
 
     # ----- Function called as a thread to generate video ----- #
-    def processVideoCreation(self, queue: Queue, userRequest: dict[str, any], videoDimensions: dict[str, int]):
+    def processVideoCreation(self, queue: queue.Queue, userRequest: dict[str, any], videoDimensions: dict[str, int]):
 
         # ----- Creating images objects ----- #
 
