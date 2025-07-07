@@ -3,30 +3,18 @@ import cv2
 import io
 import numpy as np
 import os
+import queue
+import tkinter.messagebox as tkm
 
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
+from threading import Thread
 
+from common.constants import *
 from model.particlefluxgraphimages import ParticleFluxGraphImages
 from model.solaractivityimages import SolarActivityImages
 from view.appframe import AppFrame
-
-
-## CONSTANTS --------------------------------------------------------------------------------------------------------- ##
-# Screen formats
-HORIZONTAL = "h"
-VERTICAL = "v"
-
-# Screen resolutions for videos
-RESOLUTION_HORIZONTAL_MED = (1280, 720)
-RESOLUTION_VERTICAL_MED = (720, 1280)
-RESOLUTION_HORIZONTAL_HIGH = (1920, 1080)
-RESOLUTION_VERTICAL_HIGH = (1080, 1920)
-
-# Comment block height
-COMMENT_BLOCK_HEIGHT = 60
-
-## ------------------------------------------------------------------------------------------------------------------- ##
+from view.loadingframe import LoadingFrame
 
 
 class AppHandler():
@@ -44,19 +32,48 @@ class AppHandler():
         self.main_window.minsize(500, 375)
         self.main_window.title("SolarActivid")
 
-        # Creating the main AppFrame
-        self.frmApp = AppFrame(apphandler=self, master=self.main_window, width=1200, height=1400, fg_color=("white", "gray5"))
-        self.frmApp.pack()
+        # Creating frame variables
+        self.frmApp = None
+        self.frmLoading = None
+
+        # Creating steps variables to be displayed on the Loading Frame
+        self.current_generation_step = 0
+        self.total_generation_steps = 0
+
+        # Creating queue to allow both videoGenerationThread
+        # and main thread to communicate between each other
+        self.communicationQueue = None
+        self.isQueueInUse = False
+
+        # Starting a new user request
+        self.newUserRequest()
 
         # Launching app
-        self.main_window.mainloop()
+        self.main_window.mainloop()        
     ## --------------------------------------------------------------------------------------------------------------------- ##
 
     
     ## METHODS ------------------------------------------------------------------------------------------------------------- ##
+
+    # Function to start a new user request
+    def newUserRequest(self):
+
+        # Removing the loading frame from the main_window if it exists
+        if self.frmLoading is not None:
+            self.frmLoading.pack_forget()
+
+        # Creating and adding the app frame to the main_window
+        self.frmApp = AppFrame(apphandler=self, master=self.main_window, width=1200, height=1400, fg_color=("white", "gray5"))
+        self.frmApp.pack()
+    
+
+
     # Function to treat the user's request,
     # triggered by the "Generate" button
     def treatUserRequest(self, userRequest: dict[str, any]):
+        
+        ## ---------- Defining the properties of the video to be generated ---------- ##
+        # try:
 
         # For debug 
         print(userRequest)
@@ -75,7 +92,7 @@ class AppHandler():
             # High resolution
             elif userRequest["Quality"] == "High (1080p)":
                 
-                video_width, video_height = RESOLUTION_VERTICAL_HIGH
+                video_width, video_height =  RESOLUTION_VERTICAL_HIGH
 
         # Horizontal image
         elif userRequest["Format"] == "YouTube (horizontal)":
@@ -95,10 +112,10 @@ class AppHandler():
 
         # ----- Image types resolution ----- #
 
-        # Resolution for solar activity (video's by default)
+        # Resolution for solar activity (video's resolution by default)
         solar_activity_width, solar_activity_height = video_width, video_height
 
-        # Resolution for particle flux graphs (video's by default)
+        # Resolution for particle flux graphs (video's resolution by default)
         particle_graph_width, particle_graph_height = video_width, video_height
 
 
@@ -136,10 +153,13 @@ class AppHandler():
                 solar_activity_height -= COMMENT_BLOCK_HEIGHT
                 particle_graph_height -= COMMENT_BLOCK_HEIGHT
         
-        # Converting the resolutions into ints
-        video_width, video_height = int(video_width), int(video_height)
-        solar_activity_width, solar_activity_height = int(solar_activity_width), int(solar_activity_height)
-        particle_graph_width, particle_graph_height = int(particle_graph_width), int(particle_graph_height)
+        # Initializing dictionary for video images dimensions
+        videoDimensions = {}
+        
+        # Filling the data
+        videoDimensions["video_width"], videoDimensions["video_height"] = int(video_width), int(video_height)
+        videoDimensions["solar_activity_width"], videoDimensions["solar_activity_height"] = int(solar_activity_width), int(solar_activity_height)
+        videoDimensions["particle_graph_width"], videoDimensions["particle_graph_height"] = int(particle_graph_width), int(particle_graph_height)
 
         # For debug : Displaying the resolutions
         print("Video resolution :", video_width, "x", video_height)
@@ -148,6 +168,97 @@ class AppHandler():
 
         # ---------------------------------- #
 
+
+        # ----- Launching the generation process ----- #
+
+        # Defining the total number of steps to generate the video
+        self.total_generation_steps = 0
+
+        # Adding a step : Solar activity video generation
+        if userRequest["btnSolarActivityVideo"]:
+            self.total_generation_steps += 1
+        
+        # Adding a step : Particle flux graph images
+        if userRequest["btnParticleFluxGraph"]:
+            self.total_generation_steps += 1
+        
+        # Checking if some content will be generated
+        if self.total_generation_steps > 0:
+
+            # Adding 2 steps (1 for combinging the images, 1 for exporting the video)
+            self.total_generation_steps += 2
+
+            # Setting the current step to 0
+            self.current_generation_step = 0
+
+            # Allowing the queue to be used
+            self.communicationQueue = queue.Queue()
+            self.isQueueInUse = True
+
+            # Loading thread 
+            videoGenerationThread = Thread(target=self.processVideoCreation, kwargs={"queue" : self.communicationQueue, "userRequest" : userRequest, "videoDimensions" : videoDimensions})
+
+            # Launching videthread
+            videoGenerationThread.start()
+
+            # Removing the app frame from the main_window
+            self.frmApp.pack_forget()
+
+            # Creating and adding the loading frame to the main_window
+            self.frmLoading = LoadingFrame(master=self.main_window, fg_color="transparent")
+            self.frmLoading.pack()
+
+            # Treating every element in the queue
+            self.treatQueue()
+
+            # -------------------------------------------- #
+
+
+
+    # ----- Function to treat every information in the queue ----- #
+    def treatQueue(self):
+        try:
+            # Repeating until the BREAK_LOOP signal is raised
+            # Or the Exception Queue.empty is raised
+            while True:
+
+                # Fetching information from queue, until it gets empty
+                # and returns an Exception
+                (signal, kwargs) = self.communicationQueue.get_nowait()
+
+                # For updating the step
+                if signal == UPDATE_STEP:
+                    self.frmLoading.update_step(**kwargs)    
+
+                # For updating the percentage
+                elif signal == UPDATE_PERCENTAGE:
+                    self.frmLoading.update_percentage(**kwargs)   
+                
+                # For breaking the loop
+                elif signal == BREAK_LOOP:
+                    # Temporary 
+                    self.frmLoading.update_percentage(1, 1)
+                    self.frmLoading.update_step("Done!")
+
+                    # Indicating that the queue has done its work
+                    self.communicationQueue.task_done()
+                    self.isQueueInUse = False
+
+                    return
+            
+                self.communicationQueue.task_done()
+                
+        except queue.Empty:
+            pass
+        
+        # Recalling the function after 100 ms
+        if self.isQueueInUse:
+            self.main_window.after(100, self.treatQueue)
+
+
+
+    # ----- Function called as a thread to generate video ----- #
+    def processVideoCreation(self, queue: queue.Queue, userRequest: dict[str, any], videoDimensions: dict[str, int]):
 
         # ----- Creating images objects ----- #
 
@@ -162,15 +273,41 @@ class AppHandler():
 
         # Solar activity
         if userRequest["btnSolarActivityVideo"]:
-            
+
+            # FOR LOADING FRAME
+            ###################
+            # Incrementing current generation step
+            self.current_generation_step += 1
+
+            # Displaying the information on the Loading Frame
+            queue.put((UPDATE_STEP, {
+                "new_step_content": "Fetching solar activity images",
+                "current_step": self.current_generation_step,
+                "total_steps": self.total_generation_steps
+            }))
+            ###################
+
             # Creating solar activity object
-            solar_activity_object = SolarActivityImages(beginDateTime=begin_datetime, endDateTime=end_datetime, imageWidth=solar_activity_width, imageHeight=solar_activity_height, inputFolder=input_folder)
+            solar_activity_object = SolarActivityImages(beginDateTime=begin_datetime, endDateTime=end_datetime, imageWidth=videoDimensions["solar_activity_width"], imageHeight=videoDimensions["solar_activity_height"], inputFolder=input_folder, loadingFrameQueue=queue)
 
             # Gathering images
             solar_activity_images = solar_activity_object.images
         
         # Particle flux graph
         if userRequest["btnParticleFluxGraph"]:
+
+            # FOR LOADING FRAME
+            ###################
+            # Incrementing current generation step
+            self.current_generation_step += 1
+
+            # Displaying the information on the Loading Frame
+            queue.put((UPDATE_STEP, {
+                "new_step_content": "Generating particle flux graph images",
+                "current_step": self.current_generation_step,
+                "total_steps": self.total_generation_steps
+            }))
+            ###################
 
             # Considering that there are always less solar activity
             # images than particle flux graph images, if the solar
@@ -182,13 +319,26 @@ class AppHandler():
                 number_of_images = len(solar_activity_images)
 
             # Creating particle flux graph object
-            particle_graph_object = ParticleFluxGraphImages(beginDateTime=begin_datetime, endDateTime=end_datetime, dctEnergy=userRequest["EnergyData"], imageWidth=particle_graph_width, imageHeight=particle_graph_height, numberOfImages=number_of_images, inputFolder=input_folder)
+            particle_graph_object = ParticleFluxGraphImages(beginDateTime=begin_datetime, endDateTime=end_datetime, dctEnergy=userRequest["EnergyData"], imageWidth=videoDimensions["particle_graph_width"], imageHeight=videoDimensions["particle_graph_height"], numberOfImages=number_of_images, inputFolder=input_folder, loadingFrameQueue=queue)
 
             # Gathering images
             particle_graph_images = particle_graph_object.images
         # ----------------------------------- #
 
         # ----- Combining different images (with comment) ----- #
+
+        # FOR LOADING FRAME
+        ###################
+        # Incrementing current generation step
+        self.current_generation_step += 1
+
+        # Displaying the information on the Loading Frame
+        queue.put((UPDATE_STEP, {
+                "new_step_content": "Combining images",
+                "current_step": self.current_generation_step,
+                "total_steps": self.total_generation_steps
+            }))
+        ###################
 
         # Defining the video format (horizontal/vertical)
         format = ""
@@ -199,7 +349,7 @@ class AppHandler():
             format = HORIZONTAL
 
         # Combining the different kind of images, with the comment if necessary
-        final_images = self.combine_images(solar_activity_images, particle_graph_images, video_width, video_height, format, userRequest["Comment"])
+        final_images = self.combineImages(solar_activity_images, particle_graph_images, videoDimensions["video_width"], videoDimensions["video_height"], format, userRequest["Comment"], queue)
         # ----------------------------------------------------- #
 
         # ----- Defining video name ----- #
@@ -224,13 +374,27 @@ class AppHandler():
         # ------------------------------- #
 
         # ----- Exporting the video ----- #
-        self.generate_video(final_images, video_name=video_name, video_width=video_width, video_height=video_height, output_folder=userRequest["OutputFolder"])
+
+        # FOR LOADING FRAME
+        ###################
+        # Incrementing current generation step
+        self.current_generation_step += 1
+
+        # Displaying the information on the Loading Frame
+        queue.put((UPDATE_STEP, {
+                "new_step_content": "Exporting video",
+                "current_step": self.current_generation_step,
+                "total_steps": self.total_generation_steps
+            }))
+        ###################
+
+        self.generateVideo(final_images, video_name=video_name, video_width=videoDimensions["video_width"], video_height=videoDimensions["video_height"], output_folder=userRequest["OutputFolder"], loadingFrameQueue=queue)
         # ------------------------------- #
 
-
+    
         
     # ----- Image combination algorithm ----- #
-    def combine_images(self, solar_activity_images : list, particles_graph_images : list, video_width : int, video_height : int, format : str, comment = ""):
+    def combineImages(self, solar_activity_images : list, particles_graph_images : list, video_width : int, video_height : int, format : str, comment = "", loadingFrameQueue = None):
 
         # For debug 
         print("Combining images")
@@ -289,7 +453,7 @@ class AppHandler():
         # We take the first image of both image types as a reference
     
         # Case for solar activity image
-        if len(solar_activity_images) > 0:
+        if len(solar_activity_images) > 0: 
             image_reference = Image.open(solar_activity_images[0])
             solar_activity_width = image_reference.width
             solar_activity_height = image_reference.height
@@ -363,6 +527,13 @@ class AppHandler():
 
                 # Adding the new image to the list
                 final_images.append(new_image_byte)
+
+                # --- Increasing percentage on loading frame --- #
+                loadingFrameQueue.put((UPDATE_PERCENTAGE, {
+                    "current_step": image_index+1,
+                    "total_steps": number_of_images
+                }))
+                # ---------------------------------------------- #
         
 
         # Horizontal format
@@ -406,7 +577,15 @@ class AppHandler():
                 new_image.save(new_image_byte, format='png')
 
                 # Adding the new image to the list
-                final_images.append(new_image_byte)        
+                final_images.append(new_image_byte)
+
+                # --- Increasing percentage on loading frame --- #
+                loadingFrameQueue.put((UPDATE_PERCENTAGE, {
+                    "current_step": image_index+1,
+                    "total_steps": number_of_images
+                }))
+                # ---------------------------------------------- #     
+
 
         # Returning the final images list          
         return final_images
@@ -415,7 +594,7 @@ class AppHandler():
 
 
     # ----- Video generation algorithm ----- #
-    def generate_video(self, frame_list, video_name, video_width, video_height, output_folder : str):
+    def generateVideo(self, frame_list, video_name, video_width, video_height, output_folder : str, loadingFrameQueue = None):
 
         # Saving previous working directory
         previous_working_directory = os.getcwd()
@@ -425,6 +604,9 @@ class AppHandler():
 
         # Configuring video writer
         output_video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), 25, (video_width, video_height))
+
+        # Defining the number of images
+        number_of_images = len(frame_list)
 
         counter = 1
         for one_frame in frame_list:
@@ -443,6 +625,13 @@ class AppHandler():
             print(f'Image {counter} written')
             counter += 1
 
+            # --- Increasing percentage on loading frame --- #
+            loadingFrameQueue.put((UPDATE_PERCENTAGE, {
+                    "current_step": counter,
+                    "total_steps": number_of_images
+                }))
+            # ---------------------------------------------- #
+
         # Exporting video
         cv2.destroyAllWindows()
         output_video.release()
@@ -451,5 +640,3 @@ class AppHandler():
         # Returning to the previous working directory
         os.chdir(previous_working_directory)
     # -------------------------------------- #
-    
-
