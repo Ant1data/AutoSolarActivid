@@ -1,8 +1,0 @@
-.idea/
-.venv/
-.DS_Store
-build/
-dist/
-input/
-output/
-src/__pycache__/
