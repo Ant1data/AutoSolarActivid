@@ -2,7 +2,7 @@ name: Auto Generate Solar Activity Video
 
 on:
   schedule:
-    - cron: '00 1 * * *'  # Exécution automatique chaque jour à 01h00 UTC
+    - cron: '00 2 * * *'  # Exécution automatique chaque jour à 01h00 UTC
   workflow_dispatch:        # Lancement manuel depuis l'onglet Actions
 
 jobs:
