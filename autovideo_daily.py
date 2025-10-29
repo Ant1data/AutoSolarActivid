@@ -19,10 +19,9 @@ TOTAL_FRAMES = FPS * DURATION_SEC
 # --- Base directory = location of this script ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# --- Folders (always created next to script) ---
-os.makedirs(os.path.join(BASE_DIR, "Protons"), exist_ok=True)
-os.makedirs(os.path.join(BASE_DIR, "Neutrons"), exist_ok=True)
-os.makedirs(os.path.join(BASE_DIR, "SOHO"), exist_ok=True)
+# --- Folders ---
+os.makedirs(os.path.join(BASE_DIR, "SOHO_videos"), exist_ok=True)
+os.makedirs(os.path.join(BASE_DIR, "solar_activity"), exist_ok=True)
 
 # =========================
 # SOHO
@@ -31,8 +30,7 @@ def download_soho_images(yesterday):
     date_str = yesterday.strftime('%Y%m%d')
     year = yesterday.strftime('%Y')
     folder_date_str = yesterday.strftime('%d%m%Y')
-    # Folder to store temporary SOHO images
-    base_folder = os.path.join(BASE_DIR, "SOHO", f"soho_{folder_date_str}_images")
+    base_folder = os.path.join(BASE_DIR, "SOHO_videos", f"soho_{folder_date_str}_images")
     os.makedirs(base_folder, exist_ok=True)
 
     lst_url = f"https://soho.nascom.nasa.gov/data/REPROCESSING/Completed/{year}/c2/{date_str}/.full_512.lst"
@@ -59,7 +57,6 @@ def create_soho_video(image_paths, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     video_writer = cv2.VideoWriter(output_path, fourcc, FPS, (frame_width, frame_height))
 
-    # Resample frames if fewer images than TOTAL_FRAMES
     if len(image_paths) < TOTAL_FRAMES:
         indices = np.linspace(0, len(image_paths)-1, TOTAL_FRAMES)
         frames_to_use = [image_paths[int(i)] for i in indices]
@@ -87,20 +84,19 @@ def get_noaa_proton_data_for_yesterday():
     df["flux"] = df["flux"].astype(float)
     df["energy_value"] = df["energy"].str.extract(r'>=(\d+)').astype(float)
 
-    # Only keep yesterday's data
     now_utc = datetime.now(timezone.utc)
     start = (now_utc - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
     end = start + timedelta(days=1)
     df = df[df["time_tag"].between(start, end)]
-    df = df[df["energy_value"].isin([10,50,100,500])]  # Keep only these energies
+    df = df[df["energy_value"].isin([10,50,100,500])]
     return df, start, end
 
 def create_proton_video(df, start, end, output_path):
     fig, ax = plt.subplots(figsize=(12,4))
     energies = sorted(df["energy_value"].unique())
     time_range = pd.date_range(start, end, periods=TOTAL_FRAMES)
-
     frame_images = []
+
     for t in time_range:
         ax.clear()
         for energy in energies:
@@ -247,8 +243,7 @@ def assemble_videos_vertically(video_paths, output_path):
 # =========================
 # OLD FILE CLEANER
 # =========================
-def delete_old_videos(base_dir, days=15):
-    """Delete .mp4 files older than N days in all relevant subfolders."""
+def delete_old_videos(base_dir, days=14):
     cutoff = datetime.now() - timedelta(days=days)
     for root, _, files in os.walk(base_dir):
         for f in files:
@@ -273,10 +268,9 @@ if __name__ == "__main__":
 
     # --- SOHO ---
     soho_imgs = download_soho_images(yesterday)
-    soho_vid_path = os.path.join(BASE_DIR, "SOHO", f"soho_{date_folder_str}.mp4")
+    soho_vid_path = os.path.join(BASE_DIR, "SOHO_videos", f"soho_{date_folder_str}.mp4")
     soho_vid = create_soho_video(soho_imgs, soho_vid_path)
 
-    # Clean temporary images
     for img_path in soho_imgs:
         try:
             os.remove(img_path)
@@ -288,7 +282,7 @@ if __name__ == "__main__":
 
     # --- PROTONS ---
     proton_df, start, end = get_noaa_proton_data_for_yesterday()
-    proton_vid_path = os.path.join(BASE_DIR, "Protons", f"protons_{date_folder_str}.mp4")
+    proton_vid_path = os.path.join(BASE_DIR, f"protons_{date_folder_str}.mp4")
     proton_vid = create_proton_video(proton_df, start, end, proton_vid_path)
 
     # --- NEUTRONS ---
@@ -296,7 +290,7 @@ if __name__ == "__main__":
     altitudes = {"KERG":33, "OULU":15, "TERA":32}
     neutron_df, neutron_cols = fetch_neutron_data(yesterday, yesterday + timedelta(days=1), neutron_stations)
     correlations = calculate_correlations(neutron_df, neutron_cols, neutron_stations)
-    neutron_vid_path = os.path.join(BASE_DIR, "Neutrons", f"neutrons_{date_folder_str}.mp4")
+    neutron_vid_path = os.path.join(BASE_DIR, f"neutrons_{date_folder_str}.mp4")
     neutron_vid = create_neutron_video(neutron_df, neutron_cols, neutron_stations, altitudes, neutron_vid_path)
 
     # --- FINAL VIDEO OUTPUT ---
@@ -307,8 +301,6 @@ if __name__ == "__main__":
 
     print("✅ Final video generated:", final_vid)
 
-    # --- DELETE OLD VIDEOS (>15 days) ---
-    delete_old_videos(os.path.join(BASE_DIR, "Protons"), 15)
-    delete_old_videos(os.path.join(BASE_DIR, "Neutrons"), 15)
-    delete_old_videos(os.path.join(BASE_DIR, "SOHO"), 15)
-    delete_old_videos(os.path.join(BASE_DIR, "solar_activity"), 15)
+    # --- DELETE OLD VIDEOS (>14 days) ---
+    delete_old_videos(os.path.join(BASE_DIR, "SOHO_videos"), 14)
+    delete_old_videos(os.path.join(BASE_DIR, "solar_activity"), 14)

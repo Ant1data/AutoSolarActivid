@@ -4,8 +4,4 @@ numpy
 matplotlib
 Pillow
 opencv-python-headless
-<<<<<<< HEAD
 scipy
-=======
-scipy
->>>>>>> 8edbbfb9babcca8b5ef0d14868cc8b2487cc1c76
