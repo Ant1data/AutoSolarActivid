@@ -126,7 +126,7 @@ def create_proton_video(df, start, end, output_path):
     video_writer = cv2.VideoWriter(output_path, fourcc, FPS, (w, h))
     for img in frame_images:
         frame = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-        cv2.putText(frame, "NOAA (R)", (w-120, h-15),
+        cv2.putText(frame, "GOES/SC2 @NOAA", (w-120, h-15),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 2, cv2.LINE_AA)
         video_writer.write(frame)
     video_writer.release()
@@ -294,13 +294,20 @@ if __name__ == "__main__":
     neutron_vid = create_neutron_video(neutron_df, neutron_cols, neutron_stations, altitudes, neutron_vid_path)
 
     # --- FINAL VIDEO OUTPUT ---
-    final_dir = os.path.join(BASE_DIR, "solar_activity", year_str, month_name)
+    final_dir = os.path.join(BASE_DIR, "solar_activity_videos", "daily", year_str, month_name)
     os.makedirs(final_dir, exist_ok=True)
     final_vid_path = os.path.join(final_dir, f"{date_folder_str}_solar_activity.mp4")
     final_vid = assemble_videos_vertically([soho_vid, proton_vid, neutron_vid], final_vid_path)
-
     print("✅ Final video generated:", final_vid)
 
     # --- DELETE OLD VIDEOS (>14 days) ---
     delete_old_videos(os.path.join(BASE_DIR, "SOHO_videos"), 14)
-    delete_old_videos(os.path.join(BASE_DIR, "solar_activity"), 14)
+    delete_old_videos(os.path.join(BASE_DIR, "solar_activity_videos", "daily"), 14)
+    for root, dirs, files in os.walk(os.path.join(BASE_DIR, "solar_activity_videos", "daily")):
+        for d in dirs:
+            p = os.path.join(root, d)
+            if not os.listdir(p):
+                try:
+                    os.rmdir(p)
+                except OSError:
+                    pass

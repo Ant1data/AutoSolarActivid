@@ -24,8 +24,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SOHO_DIR = os.path.join(BASE_DIR, "SOHO_7days")
 PROTON_DIR = os.path.join(BASE_DIR, "Protons_7days")
 NEUTRON_DIR = os.path.join(BASE_DIR, "Neutrons_7days")
-SOLAR_DIR = os.path.join(BASE_DIR, "Solar_Activity_7days")
-for d in [SOHO_DIR, PROTON_DIR, NEUTRON_DIR, SOLAR_DIR]:
+WEEKLY_ROOT = os.path.join(BASE_DIR, "solar_activity_videos", "weekly")
+for d in [SOHO_DIR, PROTON_DIR, NEUTRON_DIR, WEEKLY_ROOT]:
     os.makedirs(d, exist_ok=True)
 
 # =========================
@@ -335,9 +335,37 @@ if __name__ == "__main__":
     cleanup_old_videos(NEUTRON_DIR)
 
     # --- FINAL vertical assembly ---
-    final_dir = os.path.join(SOLAR_DIR, year_str, month_name)
+    final_dir = os.path.join(WEEKLY_ROOT, year_str, month_name)
     os.makedirs(final_dir, exist_ok=True)
-    final_vid_path = os.path.join(final_dir, f"{date_folder_str}_solar_activity_weekly.mp4")
+    week_number = today.isocalendar()[1]
+    start_label = start_date.strftime('%d%m%Y')
+    end_label = today.strftime('%d%m%Y')
+    file_name = f"Semaine n°{week_number} ({start_label}-{end_label}).mp4"
+    final_vid_path = os.path.join(final_dir, file_name)
     assemble_videos_vertically([weekly_soho_vid, proton_vid_path, neutron_vid_path], final_vid_path)
     print("✅ Weekly final video:", final_vid_path)
-    cleanup_old_videos(SOLAR_DIR)
+    cleanup_old_videos(SOHO_DIR)
+    cleanup_old_videos(PROTON_DIR)
+    cleanup_old_videos(NEUTRON_DIR)
+
+    # Purge par âge (>14 jours) dans WEEKLY_ROOT
+    cutoff = datetime.utcnow() - timedelta(days=14)
+    for root, dirs, files in os.walk(WEEKLY_ROOT):
+        for f in files:
+            if f.endswith('.mp4'):
+                p = os.path.join(root, f)
+                try:
+                    mtime = datetime.fromtimestamp(os.path.getmtime(p))
+                    if mtime < cutoff:
+                        os.remove(p)
+                except OSError:
+                    pass
+    # Suppression dossiers vides
+    for root, dirs, files in os.walk(WEEKLY_ROOT):
+        for d in dirs:
+            dp = os.path.join(root, d)
+            if not os.listdir(dp):
+                try:
+                    os.rmdir(dp)
+                except OSError:
+                    pass

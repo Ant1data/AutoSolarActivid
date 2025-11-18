@@ -30,12 +30,15 @@ jobs:
       - name: Upload weekly videos as artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: solar_activity_weekly
-          path: Solar_Activity_7days/**/*.mp4
+          name: solar_activity_videos_weekly
+          path: solar_activity_videos/weekly/**/*.mp4
 
       - name: Commit generated weekly videos (optional)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Solar_Activity_7days/**/*.mp4 || true
-          git diff --cached --quiet || (git commit -m "add weekly solar activity video $(date +'%d:%m:%Y')" && git push)
+          git add solar_activity_videos/weekly/**/*.mp4 || true
+          week_num=$(date +"%V")
+          start_day=$(date -d "-7 days" +"%d%m%Y")
+          end_day=$(date +"%d%m%Y")
+          git diff --cached --quiet || (git commit -m "Add weekly solar activity video - Week #${week_num} (${start_day}-${end_day})" && git push)
