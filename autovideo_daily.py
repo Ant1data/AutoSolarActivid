@@ -22,6 +22,30 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # --- Folders ---
 os.makedirs(os.path.join(BASE_DIR, "SOHO_videos"), exist_ok=True)
 os.makedirs(os.path.join(BASE_DIR, "solar_activity"), exist_ok=True)
+PROTON_ROOT = os.path.join(BASE_DIR, "Protons")
+os.makedirs(PROTON_ROOT, exist_ok=True)
+
+# =========================
+# Purge JSON Daily (>14 days)
+# =========================
+def purge_old_daily_proton_json(root_dir, days=14):
+    cutoff = datetime.utcnow() - timedelta(days=days)
+    for root, _, files in os.walk(os.path.join(root_dir, "daily")):
+        for f in files:
+            if f.endswith("_protons.json"):
+                # Expect filename like DDMMYYYY_protons.json
+                try:
+                    date_part = f.split("_protons.json")[0]
+                    file_date = datetime.strptime(date_part, "%d%m%Y")
+                except ValueError:
+                    continue
+                if file_date < cutoff:
+                    path = os.path.join(root, f)
+                    try:
+                        os.remove(path)
+                        print("🧹 Removed old daily proton JSON:", path)
+                    except OSError:
+                        pass
 
 # =========================
 # SOHO
@@ -66,8 +90,14 @@ def create_soho_video(image_paths, output_path):
     for img_path in frames_to_use:
         img = Image.open(img_path).convert('RGB').resize((frame_width, frame_height))
         frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-        cv2.putText(frame, "NASA (R)", (frame_width-120, frame_height-15),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 2, cv2.LINE_AA)
+        # Single bottom-left line
+        text = "LASCO C2 @NASA/SOHO"
+        font_scale = 0.6
+        thickness = 2
+        (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
+        x = 10  # left margin
+        y = frame_height - 12
+        cv2.putText(frame, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255,255,255), thickness, cv2.LINE_AA)
         video_writer.write(frame)
     video_writer.release()
     return output_path
@@ -79,7 +109,8 @@ def get_noaa_proton_data_for_yesterday():
     url = "https://services.swpc.noaa.gov/json/goes/primary/integral-protons-3-day.json"
     r = requests.get(url, timeout=10)
     r.raise_for_status()
-    df = pd.DataFrame(r.json())
+    raw = r.json()
+    df = pd.DataFrame(raw)
     df["time_tag"] = pd.to_datetime(df["time_tag"], utc=True)
     df["flux"] = df["flux"].astype(float)
     df["energy_value"] = df["energy"].str.extract(r'>=(\d+)').astype(float)
@@ -89,7 +120,7 @@ def get_noaa_proton_data_for_yesterday():
     end = start + timedelta(days=1)
     df = df[df["time_tag"].between(start, end)]
     df = df[df["energy_value"].isin([10,50,100,500])]
-    return df, start, end
+    return df, start, end, raw
 
 def create_proton_video(df, start, end, output_path):
     fig, ax = plt.subplots(figsize=(12,4))
@@ -126,8 +157,18 @@ def create_proton_video(df, start, end, output_path):
     video_writer = cv2.VideoWriter(output_path, fourcc, FPS, (w, h))
     for img in frame_images:
         frame = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-        cv2.putText(frame, "GOES/SC2 @NOAA", (w-120, h-15),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 2, cv2.LINE_AA)
+        overlay = frame.copy()
+        alpha = 0.55  # darker overlay
+        lines = ["Solar Proton Flux", "GOES satellite, @NOAA"]
+        y0 = 50
+        font_scale = 1.15
+        thickness = 2
+        for i, text in enumerate(lines):
+            (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
+            x = (w - tw) // 2
+            y = y0 + i * (th + 8)
+            cv2.putText(overlay, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (80, 80, 80), thickness, cv2.LINE_AA)
+        cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
         video_writer.write(frame)
     video_writer.release()
     return output_path
@@ -208,8 +249,18 @@ def create_neutron_video(df, station_cols, stations, altitudes, output_path):
     video_writer = cv2.VideoWriter(output_path, fourcc, FPS, (w, h))
     for img in frame_images:
         frame = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-        cv2.putText(frame, "NMDB (R)", (w-120, h-15),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,0), 2, cv2.LINE_AA)
+        overlay = frame.copy()
+        alpha = 0.55  # darker overlay
+        lines = ["Ground Level Neutron Flux", "@NMDB"]
+        y0 = 50
+        font_scale = 1.15
+        thickness = 2
+        for i, text in enumerate(lines):
+            (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
+            x = (w - tw) // 2
+            y = y0 + i * (th + 8)
+            cv2.putText(overlay, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (80, 80, 80), thickness, cv2.LINE_AA)
+        cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
         video_writer.write(frame)
     video_writer.release()
     return output_path
@@ -281,9 +332,24 @@ if __name__ == "__main__":
         os.rmdir(soho_folder)
 
     # --- PROTONS ---
-    proton_df, start, end = get_noaa_proton_data_for_yesterday()
+    proton_df, start, end, proton_raw_json = get_noaa_proton_data_for_yesterday()
     proton_vid_path = os.path.join(BASE_DIR, f"protons_{date_folder_str}.mp4")
     proton_vid = create_proton_video(proton_df, start, end, proton_vid_path)
+
+    # --- Save daily proton JSON ---
+    proton_json_dir = os.path.join(PROTON_ROOT, "daily", year_str, month_name)
+    os.makedirs(proton_json_dir, exist_ok=True)
+    proton_json_path = os.path.join(proton_json_dir, f"{date_folder_str}_protons.json")
+    try:
+        import json
+        with open(proton_json_path, 'w', encoding='utf-8') as f:
+            json.dump(proton_raw_json, f, ensure_ascii=False, indent=2)
+        print("💾 Proton daily JSON saved:", proton_json_path)
+    except Exception as e:
+        print("⚠️ Could not save proton daily JSON:", e)
+
+    # --- Purge old proton JSON (>14 days) ---
+    purge_old_daily_proton_json(PROTON_ROOT, 14)
 
     # --- NEUTRONS ---
     neutron_stations = ["KERG", "OULU", "TERA"]
@@ -299,6 +365,27 @@ if __name__ == "__main__":
     final_vid_path = os.path.join(final_dir, f"{date_folder_str}_solar_activity.mp4")
     final_vid = assemble_videos_vertically([soho_vid, proton_vid, neutron_vid], final_vid_path)
     print("✅ Final video generated:", final_vid)
+
+    # --- Remove intermediate SOHO daily video (not needed to keep) ---
+    try:
+        if os.path.exists(soho_vid):
+            os.remove(soho_vid)
+    except OSError:
+        pass
+    # --- Remove intermediate proton & neutron daily videos ---
+    for tmp_vid in [proton_vid, neutron_vid]:
+        try:
+            if os.path.exists(tmp_vid):
+                os.remove(tmp_vid)
+        except OSError:
+            pass
+    # If SOHO_videos directory becomes empty, remove it
+    soho_dir = os.path.join(BASE_DIR, "SOHO_videos")
+    try:
+        if os.path.isdir(soho_dir) and not os.listdir(soho_dir):
+            os.rmdir(soho_dir)
+    except OSError:
+        pass
 
     # --- DELETE OLD VIDEOS (>14 days) ---
     delete_old_videos(os.path.join(BASE_DIR, "SOHO_videos"), 14)

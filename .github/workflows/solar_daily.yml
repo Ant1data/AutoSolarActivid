@@ -32,6 +32,13 @@ jobs:
           name: solar_activity_videos_daily
           path: solar_activity_videos/daily/**/*.mp4
 
+      - name: Commit daily proton JSON
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A Protons/daily || true
+          git diff --cached --quiet || (git commit -m "update daily proton JSON $(date +'%d:%m:%Y')" && git push)
+
       - name: Commit generated videos (if size is small enough)
         run: |
           git config user.name "github-actions[bot]"
