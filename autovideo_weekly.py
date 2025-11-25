@@ -39,21 +39,17 @@ def purge_old_weekly_proton_json(root_dir, weeks=4):
     for root, _, files in os.walk(weekly_base):
         for f in files:
             if f.startswith("Week_") and f.endswith("_protons.json"):
-                # Filename format: Week_<num>_<start>_<end>_protons.json
                 parts = f.split("_")
                 if len(parts) < 5:
                     continue
-                # end date is parts[-2] before 'protons.json' part, like DDMMYYYY
                 end_date_raw = parts[-2]
                 try:
                     end_date = datetime.strptime(end_date_raw, "%d%m%Y")
                 except ValueError:
                     continue
                 if end_date < cutoff:
-                    path = os.path.join(root, f)
                     try:
-                        os.remove(path)
-                        print("🧹 Removed old weekly proton JSON:", path)
+                        os.remove(os.path.join(root, f))
                     except OSError:
                         pass
 
@@ -87,8 +83,11 @@ def download_soho_images(date):
         image_paths = list(executor.map(download_image, image_filenames))
     return sorted(image_paths)
 
+# ================
+# SOHO — corrected annotation
+# ================
 def create_soho_video(image_paths, output_path):
-    """Create a 15s SOHO video from downloaded images, then clean temporary files."""
+    """Create a 15s SOHO video (small annotation bottom-right)."""
     frame_width, frame_height = 512, 512
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     video_writer = cv2.VideoWriter(output_path, fourcc, FPS, (frame_width, frame_height))
@@ -102,32 +101,33 @@ def create_soho_video(image_paths, output_path):
     for img_path in frames_to_use:
         img = Image.open(img_path).convert('RGB').resize((frame_width, frame_height))
         frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+
         text = "LASCO C2 @NASA/SOHO"
-        font_scale = 0.6
-        thickness = 2
+        font_scale = 0.45
+        thickness = 1
         (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
-        x = (frame_width - tw) // 2
-        y = frame_height - 12
-        cv2.putText(frame, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
+
+        x = frame_width - tw - 10   # right
+        y = frame_height - 10       # bottom
+
+        cv2.putText(frame, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX,
+                    font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
+
         video_writer.write(frame)
+
     video_writer.release()
 
-    # Temporary image cleanup
     for img_path in image_paths:
-        try:
-            os.remove(img_path)
-        except OSError:
-            pass
-    folder = os.path.dirname(image_paths[0])
-    if os.path.exists(folder):
-        try:
-            os.rmdir(folder)
-        except OSError:
-            pass
+        try: os.remove(img_path)
+        except: pass
+    try: os.rmdir(os.path.dirname(image_paths[0]))
+    except: pass
+
     return output_path
 
+
 def merge_soho_videos_temporally(video_paths, output_path, target_frames=TOTAL_FRAMES):
-    """Fusionne les vidéos SOHO quotidiennes sur 7 jours en une seule vidéo de 15 secondes."""
+    """Merge SOHO daily videos with small annotation bottom-right."""
     frames_all = []
     for path in video_paths:
         cap = cv2.VideoCapture(path)
@@ -137,28 +137,34 @@ def merge_soho_videos_temporally(video_paths, output_path, target_frames=TOTAL_F
                 break
             frames_all.append(frame.copy())
         cap.release()
+
     if not frames_all:
         raise ValueError("No SOHO frames found for the week.")
 
     indices = np.linspace(0, len(frames_all) - 1, target_frames).astype(int)
     sampled_frames = [frames_all[i] for i in indices]
+
     h, w = sampled_frames[0].shape[:2]
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(output_path, fourcc, FPS, (w, h))
+
     text = "LASCO C2 @NASA/SOHO"
-    font_scale = 0.6
-    thickness = 2
+    font_scale = 0.45
+    thickness = 1
+    (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
+
     for frame in sampled_frames:
-        (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
-        x = (frame.shape[1] - tw) // 2
-        y = frame.shape[0] - 12
-        cv2.putText(frame, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
+        x = w - tw - 10
+        y = h - 10
+        cv2.putText(frame, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX,
+                    font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
         out.write(frame)
+
     out.release()
     return output_path
 
 # =========================
-# PROTONS (inchangé)
+# PROTONS (unchanged)
 # =========================
 def get_noaa_proton_data_for_week():
     url = "https://services.swpc.noaa.gov/json/goes/primary/integral-protons-7-day.json"
@@ -210,7 +216,7 @@ def create_proton_video(df, start, end, output_path):
     for img in frame_images:
         frame = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         overlay = frame.copy()
-        alpha = 0.55  # darker overlay
+        alpha = 0.55
         lines = ["Solar Proton Flux", "(GOES satellite, @NOAA)"]
         y0 = 50
         font_scale = 1.15
@@ -219,14 +225,15 @@ def create_proton_video(df, start, end, output_path):
             (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
             x = (w - tw) // 2
             y = y0 + i * (th + 8)
-            cv2.putText(overlay, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (80, 80, 80), thickness, cv2.LINE_AA)
+            cv2.putText(overlay, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX,
+                        font_scale, (80, 80, 80), thickness, cv2.LINE_AA)
         cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
         video_writer.write(frame)
     video_writer.release()
     return output_path
 
 # =========================
-# NEUTRONS (inchangé)
+# NEUTRONS (unchanged)
 # =========================
 def fetch_neutron_data(start_date, end_date, stations):
     url = (
@@ -302,7 +309,7 @@ def create_neutron_video(df, station_cols, stations, altitudes, output_path):
     for img in frame_images:
         frame = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         overlay = frame.copy()
-        alpha = 0.55  # darker overlay
+        alpha = 0.55
         lines = ["Ground Level Neutron Flux", "@NMDB"]
         y0 = 50
         font_scale = 1.15
@@ -311,7 +318,8 @@ def create_neutron_video(df, station_cols, stations, altitudes, output_path):
             (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
             x = (w - tw) // 2
             y = y0 + i * (th + 8)
-            cv2.putText(overlay, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (80, 80, 80), thickness, cv2.LINE_AA)
+            cv2.putText(overlay, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX,
+                        font_scale, (80, 80, 80), thickness, cv2.LINE_AA)
         cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
         video_writer.write(frame)
     video_writer.release()
@@ -417,18 +425,19 @@ if __name__ == "__main__":
     # --- FINAL vertical assembly ---
     final_dir = os.path.join(WEEKLY_ROOT, year_str, month_name)
     os.makedirs(final_dir, exist_ok=True)
-    week_number = today.isocalendar()[1]
     start_label = start_date.strftime('%d%m%Y')
     end_label = today.strftime('%d%m%Y')
     file_name = f"Week n°{week_number} ({start_label}-{end_label}).mp4"
     final_vid_path = os.path.join(final_dir, file_name)
+
     assemble_videos_vertically([weekly_soho_vid, proton_vid_path, neutron_vid_path], final_vid_path)
     print("✅ Weekly final video:", final_vid_path)
+
     cleanup_old_videos(SOHO_DIR)
     cleanup_old_videos(PROTON_DIR)
     cleanup_old_videos(NEUTRON_DIR)
 
-    # --- Remove intermediate weekly proton & neutron videos ---
+    # --- Remove intermediate videos ---
     for tmp_vid in [proton_vid_path, neutron_vid_path]:
         try:
             if os.path.exists(tmp_vid):
@@ -436,25 +445,24 @@ if __name__ == "__main__":
         except OSError:
             pass
 
-    # --- Remove intermediate SOHO videos (daily + weekly) to avoid keeping them ---
+    # Remove SOHO intermediate videos
     try:
-        # Delete daily SOHO videos generated during the week
         for vp in soho_video_paths:
             if os.path.exists(vp):
                 os.remove(vp)
-        # Delete merged weekly SOHO intermediate video
         if os.path.exists(weekly_soho_vid):
             os.remove(weekly_soho_vid)
     except OSError:
         pass
-    # If SOHO_7days directory becomes empty, remove it
+
+    # Remove empty SOHO dir if empty
     try:
         if os.path.isdir(SOHO_DIR) and not os.listdir(SOHO_DIR):
             os.rmdir(SOHO_DIR)
     except OSError:
         pass
 
-    # Age-based purge (>14 days) in WEEKLY_ROOT
+    # Age purge in WEEKLY_ROOT
     cutoff = datetime.utcnow() - timedelta(days=14)
     for root, dirs, files in os.walk(WEEKLY_ROOT):
         for f in files:
@@ -466,12 +474,11 @@ if __name__ == "__main__":
                         os.remove(p)
                 except OSError:
                     pass
-    # Suppression dossiers vides
+
+    # Delete empty directories
     for root, dirs, files in os.walk(WEEKLY_ROOT):
         for d in dirs:
             dp = os.path.join(root, d)
             if not os.listdir(dp):
-                try:
-                    os.rmdir(dp)
-                except OSError:
-                    pass
+                try: os.rmdir(dp)
+                except OSError: pass

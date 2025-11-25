@@ -2,8 +2,8 @@ name: Auto Generate Weekly Solar Activity Video
 
 on:
   schedule:
-    - cron: '0 0 * * 1'   # Exécution chaque lundi à 00:00 UTC (~01:00 heure française)
-  workflow_dispatch:       # Lancement manuel possible
+    - cron: '0 0 * * 1'   # Exécution chaque lundi à 00:00 UTC
+  workflow_dispatch:
 
 jobs:
   build:
@@ -24,8 +24,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run weekly solar activity script
-        run: |
-          python autovideo_weekly.py
+        run: python autovideo_weekly.py
 
       - name: Upload weekly videos as artifacts
         uses: actions/upload-artifact@v4
@@ -33,22 +32,24 @@ jobs:
           name: solar_activity_videos_weekly
           path: solar_activity_videos/weekly/**/*.mp4
 
-      - name: Commit weekly proton JSON
+      - name: Commit all weekly changes in one commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A Protons/weekly || true
+
+          # Ajouter JSON + vidéos
+          git add Protons/weekly || true
+          git add solar_activity_videos/weekly/**/*.mp4 || true
+
+          # Préparer infos semaine
           week_num=$(date +"%V")
           start_label=$(date -d "-7 days" +"%d%m%Y")
           end_label=$(date +"%d%m%Y")
-          git diff --cached --quiet || (git commit -m "update weekly proton JSON Week #${week_num} (${start_label}-${end_label})" && git push)
 
-      - name: Commit generated weekly videos (optional)
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add solar_activity_videos/weekly/**/*.mp4 || true
-          week_num=$(date +"%V")
-          start_day=$(date -d "-7 days" +"%d%m%Y")
-          end_day=$(date +"%d%m%Y")
-          git diff --cached --quiet || (git commit -m "Add weekly solar activity video - Week #${week_num} (${start_day}-${end_day})" && git push)
+          # Si modifications → commit unique
+          if ! git diff --cached --quiet; then
+            git commit -m "Weekly update: proton JSON & solar video - Week #${week_num} (${start_label}-${end_label})"
+            git push
+          else
+            echo "Aucun changement à committer"
+          fi

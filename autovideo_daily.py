@@ -1,9 +1,9 @@
 import os
 import cv2
 import numpy as np
+import pandas as pd
 from PIL import Image
 import matplotlib.pyplot as plt
-import pandas as pd
 from datetime import datetime, timedelta, timezone
 import calendar
 import requests
@@ -16,7 +16,7 @@ FPS = 60
 DURATION_SEC = 15
 TOTAL_FRAMES = FPS * DURATION_SEC
 
-# --- Base directory = location of this script ---
+# --- Base directory ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # --- Folders ---
@@ -24,6 +24,7 @@ os.makedirs(os.path.join(BASE_DIR, "SOHO_videos"), exist_ok=True)
 os.makedirs(os.path.join(BASE_DIR, "solar_activity"), exist_ok=True)
 PROTON_ROOT = os.path.join(BASE_DIR, "Protons")
 os.makedirs(PROTON_ROOT, exist_ok=True)
+
 
 # =========================
 # Purge JSON Daily (>14 days)
@@ -33,7 +34,6 @@ def purge_old_daily_proton_json(root_dir, days=14):
     for root, _, files in os.walk(os.path.join(root_dir, "daily")):
         for f in files:
             if f.endswith("_protons.json"):
-                # Expect filename like DDMMYYYY_protons.json
                 try:
                     date_part = f.split("_protons.json")[0]
                     file_date = datetime.strptime(date_part, "%d%m%Y")
@@ -46,6 +46,7 @@ def purge_old_daily_proton_json(root_dir, days=14):
                         print("🧹 Removed old daily proton JSON:", path)
                     except OSError:
                         pass
+
 
 # =========================
 # SOHO
@@ -76,13 +77,14 @@ def download_soho_images(yesterday):
         image_paths = list(executor.map(download_image, image_filenames))
     return sorted(image_paths)
 
+
 def create_soho_video(image_paths, output_path):
     frame_width, frame_height = 512, 512
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     video_writer = cv2.VideoWriter(output_path, fourcc, FPS, (frame_width, frame_height))
 
     if len(image_paths) < TOTAL_FRAMES:
-        indices = np.linspace(0, len(image_paths)-1, TOTAL_FRAMES)
+        indices = np.linspace(0, len(image_paths) - 1, TOTAL_FRAMES)
         frames_to_use = [image_paths[int(i)] for i in indices]
     else:
         frames_to_use = image_paths[:TOTAL_FRAMES]
@@ -90,17 +92,31 @@ def create_soho_video(image_paths, output_path):
     for img_path in frames_to_use:
         img = Image.open(img_path).convert('RGB').resize((frame_width, frame_height))
         frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-        # Single bottom-left line
+
+        # ─────────────────────────────────────────────
+        # ⬇️ CORRECTION : légende SOHO à droite + plus petite
+        # ─────────────────────────────────────────────
         text = "LASCO C2 @NASA/SOHO"
-        font_scale = 0.6
-        thickness = 2
+        font_scale = 0.5
+        thickness = 1
         (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
-        x = 10  # left margin
-        y = frame_height - 12
-        cv2.putText(frame, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255,255,255), thickness, cv2.LINE_AA)
+
+        x = frame_width - tw - 10   # aligné à droite
+        y = frame_height - 12       # bas de l’image
+
+        cv2.putText(
+            frame, text, (x, y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            font_scale, (255, 255, 255),
+            thickness, cv2.LINE_AA
+        )
+        # ─────────────────────────────────────────────
+
         video_writer.write(frame)
+
     video_writer.release()
     return output_path
+
 
 # =========================
 # PROTONS
@@ -118,12 +134,14 @@ def get_noaa_proton_data_for_yesterday():
     now_utc = datetime.now(timezone.utc)
     start = (now_utc - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
     end = start + timedelta(days=1)
+
     df = df[df["time_tag"].between(start, end)]
-    df = df[df["energy_value"].isin([10,50,100,500])]
+    df = df[df["energy_value"].isin([10, 50, 100, 500])]
     return df, start, end, raw
 
+
 def create_proton_video(df, start, end, output_path):
-    fig, ax = plt.subplots(figsize=(12,4))
+    fig, ax = plt.subplots(figsize=(12, 4))
     energies = sorted(df["energy_value"].unique())
     time_range = pd.date_range(start, end, periods=TOTAL_FRAMES)
     frame_images = []
@@ -131,47 +149,57 @@ def create_proton_video(df, start, end, output_path):
     for t in time_range:
         ax.clear()
         for energy in energies:
-            sub = df[df["energy_value"]==energy]
+            sub = df[df["energy_value"] == energy]
             sub_plot = sub[sub["time_tag"] <= t]
             ax.plot(sub_plot["time_tag"], sub_plot["flux"], label=f">= {int(energy)} MeV", linewidth=1.8)
+
         ax.set_xlim(start, end)
         current_data = df[df["time_tag"] <= t]
+
         if not current_data.empty:
-            ymin = current_data["flux"].min()*0.9
-            ymax = current_data["flux"].max()*1.1
+            ymin = current_data["flux"].min() * 0.9
+            ymax = current_data["flux"].max() * 1.1
             ax.set_ylim(ymin, ymax)
+
         ax.set_xlabel("UTC Time")
         ax.set_ylabel("Flux (protons·cm⁻²·s⁻¹·sr⁻¹)")
         ax.grid(True, linestyle="--", alpha=0.5)
         ax.legend()
         plt.tight_layout()
+
         fig.canvas.draw()
         img = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8)
         img = img.reshape(fig.canvas.get_width_height()[::-1] + (4,))
         img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
         frame_images.append(img)
+
     plt.close(fig)
 
     h, w, _ = frame_images[0].shape
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     video_writer = cv2.VideoWriter(output_path, fourcc, FPS, (w, h))
+
     for img in frame_images:
         frame = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         overlay = frame.copy()
-        alpha = 0.55  # darker overlay
+        alpha = 0.55
         lines = ["Solar Proton Flux", "GOES satellite, @NOAA"]
         y0 = 50
         font_scale = 1.15
         thickness = 2
+
         for i, text in enumerate(lines):
             (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
             x = (w - tw) // 2
             y = y0 + i * (th + 8)
             cv2.putText(overlay, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (80, 80, 80), thickness, cv2.LINE_AA)
+
         cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
         video_writer.write(frame)
+
     video_writer.release()
     return output_path
+
 
 # =========================
 # NEUTRONS
@@ -186,17 +214,23 @@ def fetch_neutron_data(start_date, end_date, stations):
     )
     r = requests.get(url, timeout=20)
     r.raise_for_status()
+
     lines = [l.strip() for l in r.text.splitlines() if re.match(r'^\d{4}-\d{2}-\d{2}', l)]
     if not lines:
         raise ValueError("No valid data found.")
+
     data = [line.split(";") for line in lines]
     df = pd.DataFrame(data[1:], columns=[c.strip() for c in data[0]])
-    df["datetime"] = pd.to_datetime(df.iloc[:,0], errors="coerce")
+
+    df["datetime"] = pd.to_datetime(df.iloc[:, 0], errors="coerce")
     df = df.dropna(subset=["datetime"])
+
     station_cols = df.columns[1:-1]
     for c in station_cols:
         df[c] = pd.to_numeric(df[c], errors="coerce")
+
     return df, station_cols
+
 
 def calculate_correlations(df, station_cols, stations):
     correlations = {}
@@ -213,57 +247,69 @@ def calculate_correlations(df, station_cols, stations):
                     correlations[f"{station1}_vs_{station2}"] = r
     return correlations
 
+
 def create_neutron_video(df, station_cols, stations, altitudes, output_path):
-    fig, ax = plt.subplots(figsize=(12,4))
-    colors = {"TERA":"red","OULU":"orange","KERG":"gold"}
+    fig, ax = plt.subplots(figsize=(12, 4))
+    colors = {"TERA": "red", "OULU": "orange", "KERG": "gold"}
     time_range = pd.date_range(df["datetime"].min(), df["datetime"].max(), periods=TOTAL_FRAMES)
     frame_images = []
 
     for t in time_range:
         ax.clear()
         current_data = df[df["datetime"] <= t]
+
         if current_data.empty:
             continue
-        ymin = current_data[station_cols].min().min()*0.9
-        ymax = current_data[station_cols].max().max()*1.1
+
+        ymin = current_data[station_cols].min().min() * 0.9
+        ymax = current_data[station_cols].max().max() * 1.1
         ax.set_ylim(ymin, ymax)
+
         for i, station in enumerate(stations):
             if i >= len(station_cols):
                 continue
             ax.plot(current_data["datetime"], current_data[station_cols[i]], label=station, color=colors.get(station, "blue"))
+
         ax.set_xlim(df["datetime"].min(), df["datetime"].max())
         ax.set_xlabel("UTC Time")
         ax.set_ylabel("Neutron Flux (particles·cm⁻²·s⁻¹·sr⁻¹)")
         ax.grid(True, linestyle="--", alpha=0.5)
         ax.legend()
         plt.tight_layout()
+
         fig.canvas.draw()
         img = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8)
         img = img.reshape(fig.canvas.get_width_height()[::-1] + (4,))
         img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
         frame_images.append(img)
+
     plt.close(fig)
 
     h, w, _ = frame_images[0].shape
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     video_writer = cv2.VideoWriter(output_path, fourcc, FPS, (w, h))
+
     for img in frame_images:
         frame = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         overlay = frame.copy()
-        alpha = 0.55  # darker overlay
+        alpha = 0.55
         lines = ["Ground Level Neutron Flux", "@NMDB"]
         y0 = 50
         font_scale = 1.15
         thickness = 2
+
         for i, text in enumerate(lines):
             (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
             x = (w - tw) // 2
             y = y0 + i * (th + 8)
             cv2.putText(overlay, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (80, 80, 80), thickness, cv2.LINE_AA)
+
         cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
         video_writer.write(frame)
+
     video_writer.release()
     return output_path
+
 
 # =========================
 # VERTICAL ASSEMBLY
@@ -272,8 +318,10 @@ def assemble_videos_vertically(video_paths, output_path):
     caps = [cv2.VideoCapture(v) for v in video_paths]
     widths = [int(c.get(cv2.CAP_PROP_FRAME_WIDTH)) for c in caps]
     heights = [int(c.get(cv2.CAP_PROP_FRAME_HEIGHT)) for c in caps]
+
     target_width = min(widths)
     total_height = sum(heights)
+
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(output_path, fourcc, FPS, (target_width, total_height))
 
@@ -286,10 +334,13 @@ def assemble_videos_vertically(video_paths, output_path):
             frame = cv2.resize(frame, (target_width, frame.shape[0]))
             frames.append(frame)
         out.write(np.vstack(frames))
+
     out.release()
     for c in caps:
         c.release()
+
     return output_path
+
 
 # =========================
 # OLD FILE CLEANER
@@ -307,6 +358,7 @@ def delete_old_videos(base_dir, days=14):
                         print(f"🗑 Deleted old video: {path}")
                     except OSError:
                         pass
+
 
 # =========================
 # MAIN
@@ -336,10 +388,11 @@ if __name__ == "__main__":
     proton_vid_path = os.path.join(BASE_DIR, f"protons_{date_folder_str}.mp4")
     proton_vid = create_proton_video(proton_df, start, end, proton_vid_path)
 
-    # --- Save daily proton JSON ---
+    # Save daily JSON
     proton_json_dir = os.path.join(PROTON_ROOT, "daily", year_str, month_name)
     os.makedirs(proton_json_dir, exist_ok=True)
     proton_json_path = os.path.join(proton_json_dir, f"{date_folder_str}_protons.json")
+
     try:
         import json
         with open(proton_json_path, 'w', encoding='utf-8') as f:
@@ -348,38 +401,33 @@ if __name__ == "__main__":
     except Exception as e:
         print("⚠️ Could not save proton daily JSON:", e)
 
-    # --- Purge old proton JSON (>14 days) ---
     purge_old_daily_proton_json(PROTON_ROOT, 14)
 
     # --- NEUTRONS ---
     neutron_stations = ["KERG", "OULU", "TERA"]
-    altitudes = {"KERG":33, "OULU":15, "TERA":32}
+    altitudes = {"KERG": 33, "OULU": 15, "TERA": 32}
     neutron_df, neutron_cols = fetch_neutron_data(yesterday, yesterday + timedelta(days=1), neutron_stations)
     correlations = calculate_correlations(neutron_df, neutron_cols, neutron_stations)
+
     neutron_vid_path = os.path.join(BASE_DIR, f"neutrons_{date_folder_str}.mp4")
     neutron_vid = create_neutron_video(neutron_df, neutron_cols, neutron_stations, altitudes, neutron_vid_path)
 
-    # --- FINAL VIDEO OUTPUT ---
+    # --- FINAL VIDEO ---
     final_dir = os.path.join(BASE_DIR, "solar_activity_videos", "daily", year_str, month_name)
     os.makedirs(final_dir, exist_ok=True)
     final_vid_path = os.path.join(final_dir, f"{date_folder_str}_solar_activity.mp4")
     final_vid = assemble_videos_vertically([soho_vid, proton_vid, neutron_vid], final_vid_path)
+
     print("✅ Final video generated:", final_vid)
 
-    # --- Remove intermediate SOHO daily video (not needed to keep) ---
-    try:
-        if os.path.exists(soho_vid):
-            os.remove(soho_vid)
-    except OSError:
-        pass
-    # --- Remove intermediate proton & neutron daily videos ---
-    for tmp_vid in [proton_vid, neutron_vid]:
+    # Cleanup
+    for tmp in [soho_vid, proton_vid, neutron_vid]:
         try:
-            if os.path.exists(tmp_vid):
-                os.remove(tmp_vid)
+            if os.path.exists(tmp):
+                os.remove(tmp)
         except OSError:
             pass
-    # If SOHO_videos directory becomes empty, remove it
+
     soho_dir = os.path.join(BASE_DIR, "SOHO_videos")
     try:
         if os.path.isdir(soho_dir) and not os.listdir(soho_dir):
@@ -387,9 +435,9 @@ if __name__ == "__main__":
     except OSError:
         pass
 
-    # --- DELETE OLD VIDEOS (>14 days) ---
     delete_old_videos(os.path.join(BASE_DIR, "SOHO_videos"), 14)
     delete_old_videos(os.path.join(BASE_DIR, "solar_activity_videos", "daily"), 14)
+
     for root, dirs, files in os.walk(os.path.join(BASE_DIR, "solar_activity_videos", "daily")):
         for d in dirs:
             p = os.path.join(root, d)
