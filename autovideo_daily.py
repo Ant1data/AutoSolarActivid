@@ -359,6 +359,33 @@ def delete_old_videos(base_dir, days=14):
                     except OSError:
                         pass
 
+def purge_daily_activity_videos_by_name(base_dir, days=14):
+    """Delete daily solar activity videos older than 'days' based on date parsed from filename.
+    Expected pattern: DDMMYYYY_solar_activity.mp4"""
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+    target_root = os.path.join(base_dir, "solar_activity_videos", "daily")
+    removed = 0
+    for root, _, files in os.walk(target_root):
+        for f in files:
+            if f.endswith("_solar_activity.mp4"):
+                date_part = f.split("_solar_activity.mp4")[0]
+                try:
+                    file_date = datetime.strptime(date_part, "%d%m%Y")
+                except ValueError:
+                    continue
+                if file_date < cutoff_date:
+                    path = os.path.join(root, f)
+                    try:
+                        os.remove(path)
+                        removed += 1
+                        print(f"🧹 Purged daily video (name check): {path}")
+                    except OSError:
+                        pass
+    if removed:
+        print(f"✅ Purge daily name-based complete. {removed} files removed.")
+    else:
+        print("ℹ️ No daily videos to purge by name.")
+
 
 # =========================
 # MAIN
@@ -437,6 +464,7 @@ if __name__ == "__main__":
 
     delete_old_videos(os.path.join(BASE_DIR, "SOHO_videos"), 14)
     delete_old_videos(os.path.join(BASE_DIR, "solar_activity_videos", "daily"), 14)
+    purge_daily_activity_videos_by_name(BASE_DIR, 14)
 
     for root, dirs, files in os.walk(os.path.join(BASE_DIR, "solar_activity_videos", "daily")):
         for d in dirs:

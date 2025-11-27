@@ -38,8 +38,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           # Ajouter JSON + vidéos
-          git add Protons/weekly || true
-          git add solar_activity_videos/weekly/**/*.mp4 || true
+          git add -A Protons/weekly || true
+          git add -A solar_activity_videos/weekly || true
 
           # Préparer infos semaine
           week_num=$(date +"%V")

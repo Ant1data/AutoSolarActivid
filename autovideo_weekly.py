@@ -363,6 +363,40 @@ def cleanup_old_videos(folder, max_videos=MAX_WEEKLY_VIDEOS):
             pass
         files.pop(0)
 
+def purge_weekly_activity_videos_by_name(base_dir, weeks=4):
+    """Delete weekly solar activity videos older than 'weeks' based on end date parsed from filename.
+    Pattern: Week n°X (DDMMYYYY-DDMMYYYY).mp4 -> use end date (second date)."""
+    cutoff = datetime.utcnow() - timedelta(weeks=weeks)
+    target_root = os.path.join(base_dir, "solar_activity_videos", "weekly")
+    removed = 0
+    for root, _, files in os.walk(target_root):
+        for f in files:
+            if f.startswith("Week n°") and f.endswith(") .mp4"):
+                # incorrect pattern guard (rare); skip
+                continue
+            if f.startswith("Week n°") and f.endswith(") .mp4"):
+                continue
+            if f.startswith("Week n°") and f.endswith(").mp4"):
+                try:
+                    # Extract substring inside parentheses
+                    paren = f.split("(")[-1].split(")")[0]
+                    start_str, end_str = paren.split("-")
+                    end_date = datetime.strptime(end_str.strip(), "%d%m%Y")
+                except Exception:
+                    continue
+                if end_date < cutoff:
+                    path = os.path.join(root, f)
+                    try:
+                        os.remove(path)
+                        removed += 1
+                        print(f"🧹 Purged weekly video (name check): {path}")
+                    except OSError:
+                        pass
+    if removed:
+        print(f"✅ Purge weekly name-based complete. {removed} files removed.")
+    else:
+        print("ℹ️ No weekly videos to purge by name.")
+
 # =========================
 # MAIN WEEKLY
 # =========================
@@ -463,17 +497,7 @@ if __name__ == "__main__":
         pass
 
     # Age purge in WEEKLY_ROOT
-    cutoff = datetime.utcnow() - timedelta(days=14)
-    for root, dirs, files in os.walk(WEEKLY_ROOT):
-        for f in files:
-            if f.endswith('.mp4'):
-                p = os.path.join(root, f)
-                try:
-                    mtime = datetime.fromtimestamp(os.path.getmtime(p))
-                    if mtime < cutoff:
-                        os.remove(p)
-                except OSError:
-                    pass
+    purge_weekly_activity_videos_by_name(BASE_DIR, 4)
 
     # Delete empty directories
     for root, dirs, files in os.walk(WEEKLY_ROOT):
