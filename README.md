@@ -93,7 +93,9 @@ AutoSolarActivid/
 ```
 Temporary internal folders: `SOHO_videos/`, `SOHO_7days/`, `Protons_7days/`, `Neutrons_7days/`.
 
-The historical folder `solar_activity/` is no longer used (replaced by direct downloads).
+Temporary cache used by weekly protons: `Protons/tmp_7days/`.
+
+The historical folder `solar_activity/` may still be created by scripts but is no longer used (replaced by direct downloads).
 
 ## Parameters & Customization
 | Parameter | File | Purpose |
